@@ -46,11 +46,11 @@ from cflib.utils import uri_helper
 uri = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7E7')
 
 # The host name or ip address of the mocap system
-host_name = '192.168.5.21'
+host_name = '192.168.209.81'
 
 # The type of the mocap system
 # Valid options are: 'vicon', 'optitrack', 'optitrack_closed_source', 'qualisys', 'nokov', 'vrpn', 'motionanalysis'
-mocap_system_type = 'qualisys'
+mocap_system_type = 'optitrack'
 
 # The name of the rigid body that represents the Crazyflie
 rigid_body_name = 'cf'

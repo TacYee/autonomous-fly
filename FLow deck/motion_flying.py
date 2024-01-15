@@ -18,6 +18,8 @@ deck_attached_event = Event()
 
 logging.basicConfig(level=logging.ERROR)
 
+position_estimate = [0, 0]
+
 def take_off_simple(scf):
     with MotionCommander(scf, default_height=DEFAULT_HEIGHT) as mc:
         time.sleep(3)
@@ -60,6 +62,11 @@ def move_linear_HC(scf):
 
     commander.stop()
 
+def log_pos_callback(timestamp, data, logconf):
+    print(data)
+    global position_estimate
+    position_estimate[0] = data['stateEstimate.x']
+    position_estimate[1] = data['stateEstimate.y']
 
 def param_deck_flow(_, value_str):
     value = int(value_str)
@@ -72,8 +79,13 @@ def param_deck_flow(_, value_str):
 
 if __name__ == '__main__':
     cflib.crtp.init_drivers()
-
+    
     with SyncCrazyflie(URI, cf=Crazyflie(rw_cache='./cache')) as scf:
+        logconf = LogConfig(name='Position', period_in_ms=10)
+        logconf.add_variable('stateEstimate.x', 'float')
+        logconf.add_variable('stateEstimate.y', 'float')
+        scf.cf.log.add_config(logconf)
+        logconf.data_received_cb.add_callback(log_pos_callback)
 
         scf.cf.param.add_update_callback(group='deck', name='bcFlow2',
                                          cb=param_deck_flow)
@@ -82,7 +94,8 @@ if __name__ == '__main__':
         if not deck_attached_event.wait(timeout=5):
             print('No flow deck detected!')
             sys.exit(1)
-
+        logconf.start()
         move_linear_HC(scf)
+        logconf.stop()
 
 
