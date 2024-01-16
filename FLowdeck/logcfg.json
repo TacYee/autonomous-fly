@@ -1,0 +1,81 @@
+{
+    "gyros":{
+        "name": "gyros",
+        "type": "CF",
+        "period": 10,
+        "variables": ["gyro.x",
+                      "gyro.y",
+                      "gyro.z"],
+        "headers": ["gyroX", "gyroY", "gyroZ"]
+    },
+
+    "attitude":{
+        "name": "attitude",
+        "type": "CF",
+        "period": 10,
+        "variables": ["stabilizer.roll",
+                      "stabilizer.pitch",
+                      "stabilizer.yaw"],
+        "headers": ["roll", "pitch", "yaw"]
+    },
+
+    "motor":{
+        "name": "motor",
+        "type": "CF",
+        "period": 10,
+        "variables": ["motor.m1",
+                      "motor.m2",
+                      "motor.m3",
+                      "motor.m4"
+                      ],
+        "headers": ["motor1", "motor2", "motor3", "motor4"]
+    },
+
+    "state":{
+        "name": "state",
+        "type": "CF",
+        "period": 10,
+        "variables": ["stateEstimate.x",
+                      "stateEstimate.y",
+                      "stateEstimate.z",
+                      "stateEstimate.vx",
+                      "stateEstimate.vy",
+                      "stateEstimate.vz"],
+        "headers": ["stateX", "stateY", "stateZ", "stateVX", "stateVY", "stateVZ"]
+    },
+
+    "whisker":{
+        "name": "Whisker",
+        "type": "CF",
+        "period": 10,
+        "variables": ["Whisker.barometer1",
+                      "Whisker.barometer2",
+                      "Whisker.barometer3"],
+        "headers": ["whisker1", "whisker2", "whisker3"]
+    },
+
+
+    "otpos":{
+        "name": "otpos",
+        "type": "EXT",
+        "period": 10,
+        "variables": ["otX",
+                      "otY",
+                      "otZ"],
+        "headers": ["otX", "otY", "otZ"]
+    },
+    
+    "otatt":{
+        "name": "otatt",
+        "type": "EXT",
+        "period": 10,
+        "variables": ["otRoll",
+                      "otPitch",
+                      "otYaw",
+                      "otq0",
+                      "otq1",
+                      "otq2",
+                      "otq3"],
+        "headers": ["otRoll", "otPitch", "otYaw", "otq0", "otq1", "otq2", "otq3"]
+    }
+}

@@ -80,7 +80,7 @@ figure8 = [
     [1.053185, -0.398611, 0.850510, -0.144007, -0.485368, -0.079781, 0.176330, 0.234482, -0.153567, 0.447039, -0.532729, -0.855023, 0.878509, 0.775168, -0.391051, -0.713519, 0.391628, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000],  # noqa
 ]
 
-
+#obtain position and rotation from mocap
 class MocapWrapper(Thread):
     def __init__(self, body_name):
         Thread.__init__(self)
@@ -102,6 +102,7 @@ class MocapWrapper(Thread):
                 if name == self.body_name:
                     if self.on_pose:
                         pos = obj.position
+                        #call back on pose
                         self.on_pose([pos[0], pos[1], pos[2], obj.rotation])
 
 
