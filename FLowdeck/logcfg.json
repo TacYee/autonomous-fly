@@ -1,13 +1,4 @@
 {
-    "gyros":{
-        "name": "gyros",
-        "type": "CF",
-        "period": 10,
-        "variables": ["gyro.x",
-                      "gyro.y",
-                      "gyro.z"],
-        "headers": ["gyroX", "gyroY", "gyroZ"]
-    },
 
     "attitude":{
         "name": "attitude",
@@ -40,42 +31,48 @@
                       "stateEstimate.z",
                       "stateEstimate.vx",
                       "stateEstimate.vy",
-                      "stateEstimate.vz"],
-        "headers": ["stateX", "stateY", "stateZ", "stateVX", "stateVY", "stateVZ"]
+                      "stateEstimate.vz",
+                      "stateEstimate.yaw"],
+        "headers": ["stateX", "stateY", "stateZ", "stateVX", "stateVY", "stateVZ","stateyaw"]
     },
 
     "whisker":{
         "name": "Whisker",
         "type": "CF",
         "period": 10,
-        "variables": ["Whisker.barometer1",
-                      "Whisker.barometer2",
-                      "Whisker.barometer3"],
+        "variables": ["Whisker.Barometer1",
+                      "Whisker.Barometer2",
+                      "Whisker.Barometer3"],
         "headers": ["whisker1", "whisker2", "whisker3"]
     },
 
-
-    "otpos":{
-        "name": "otpos",
-        "type": "EXT",
+    "flow":{
+        "name": "flow",
+        "type": "CF",
         "period": 10,
-        "variables": ["otX",
-                      "otY",
-                      "otZ"],
-        "headers": ["otX", "otY", "otZ"]
+        "variables": ["motion.deltaX",
+                      "motion.deltaY"],
+        "headers": ["flowX", "flowY"]
     },
     
-    "otatt":{
-        "name": "otatt",
-        "type": "EXT",
+    "laser":{
+        "name": "laser",
+        "type": "CF",
         "period": 10,
-        "variables": ["otRoll",
-                      "otPitch",
-                      "otYaw",
-                      "otq0",
-                      "otq1",
-                      "otq2",
-                      "otq3"],
-        "headers": ["otRoll", "otPitch", "otYaw", "otq0", "otq1", "otq2", "otq3"]
+        "variables": ["range.front"],
+        "headers": ["laserFront"]
+    },
+
+    "kalman":{
+        "name": "kalman",
+        "type": "CF",
+        "period": 10,
+        "variables": ["kalman.stateX",
+                      "kalman.stateY",
+                      "kalman.stateZ",
+                      "kalman.statePX",
+                      "kalman.statePY",
+                      "kalman.statePZ"],
+        "headers": ["kalX", "kalY", "kalZ", "kalPX", "kalPY", "kalPZ"]
     }
 }

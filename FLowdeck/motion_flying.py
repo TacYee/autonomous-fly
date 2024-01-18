@@ -10,7 +10,7 @@ import os
 import cflib.crtp
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
-from cflib.positioning.motion_commander import MotionCommander
+from cflib.positioning.motion_commander import MotionCommander  
 from cflib.utils import uri_helper
 from FileLogger import FileLogger
 
@@ -31,39 +31,31 @@ def take_off_simple(scf):
 
 def move_linear_simple(scf):
     with MotionCommander(scf, default_height=DEFAULT_HEIGHT) as mc:
-        time.sleep(10)
+        time.sleep(1)
         mc.forward(0.5)
-        time.sleep(10)
+        time.sleep(1)
         mc.back(0.5)
-        time.sleep(10)
+        time.sleep(1)
         mc.stop
 
 def move_linear_HC(scf):
 
-    flight_time = 4
+    with MotionCommander(scf,default_height=DEFAULT_HEIGHT) as commander:
 
-    commander = scf.cf.high_level_commander
+        time.sleep(4)
 
-    commander.takeoff(0.5, 2)
-    time.sleep(3)
+        commander.forward(0.5, 0.5)
+        time.sleep(4)
 
-    commander.go_to(0.5, 0, 0, 0, flight_time, relative=True)
-    time.sleep(flight_time)
+        commander.right(0.5,0.5)
+        time.sleep(4)
 
-    commander.go_to(0, -0.5, 0, 0, flight_time, relative=True)
-    time.sleep(flight_time)
+        commander.back(0.5, 0.5)
+        time.sleep(4)
 
-    commander.go_to(-0.5, 0, 0, 0, flight_time, relative=True)
-    time.sleep(flight_time)
+        commander.land(0.2)
 
-    commander.go_to(0, 0, -0.5, 0, flight_time, relative=True)
-    time.sleep(flight_time)
-
-    commander.go_to(0, 0, -0.2, 0, flight_time, relative=True)
-
-    commander.land(0, 2.0)
-
-    commander.stop()
+        commander.stop()
 
 # def log_pos_callback(timestamp, data, logconf):
 #     print(data)
@@ -139,11 +131,11 @@ def setup_logger():
 
     # Enable log configurations based on system setup:
     # Defaults
-    flogger.enableConfig("attitude")
-    flogger.enableConfig("gyros")
-    flogger.enableConfig("acc")
+    # flogger.enableConfig("attitude")
+    # flogger.enableConfig("gyros")
+    # flogger.enableConfig("acc")
     flogger.enableConfig("state")
-    flogger.enableConfig("whisker")
+    # flogger.enableConfig("whisker")
     flogger.enableConfig("motor")
 
     # UWB
@@ -156,11 +148,10 @@ def setup_logger():
     # Flow
     if args["flow"]:
         flogger.enableConfig("laser")
-        flogger.enableConfig("flow")
+        # flogger.enableConfig("flow")
     # OptiTrack
-    if args["optitrack"] != "none":
-        flogger.enableConfig("otpos")
-        flogger.enableConfig("otatt")
+    # if args["optitrack"] != "none":
+    #     flogger.enableConfig("kalman")
     flogger.start()
     # # Estimator
     # if args["estimator"] == "kalman":
@@ -203,6 +194,6 @@ if __name__ == '__main__':
             print('No flow deck detected!')
             sys.exit(1)
 
-        move_linear_HC(scf)
+        # move_linear_simple(scf)
 
 
