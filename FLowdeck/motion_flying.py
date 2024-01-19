@@ -135,8 +135,9 @@ def setup_logger():
     # flogger.enableConfig("gyros")
     # flogger.enableConfig("acc")
     flogger.enableConfig("state")
-    # flogger.enableConfig("whisker")
+    flogger.enableConfig("whisker")
     flogger.enableConfig("motor")
+    flogger.enableConfig("orientation")
 
     # UWB
     if args["uwb"] == "twr":
@@ -144,14 +145,14 @@ def setup_logger():
     elif args["uwb"] == "tdoa":
         print("Needs custom TDoA logging in firmware!")
         # For instance, see here: https://github.com/Huizerd/crazyflie-firmware/blob/master/src/utils/src/tdoa/tdoaEngine.c
-        # flogger.enableConfig("tdoa")
+        flogger.enableConfig("tdoa")
     # Flow
     if args["flow"]:
         flogger.enableConfig("laser")
         # flogger.enableConfig("flow")
     # OptiTrack
-    # if args["optitrack"] != "none":
-    #     flogger.enableConfig("kalman")
+    if args["optitrack"] != "none":
+        flogger.enableConfig("kalman")
     flogger.start()
     # # Estimator
     # if args["estimator"] == "kalman":

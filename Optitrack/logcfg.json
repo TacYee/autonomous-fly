@@ -35,14 +35,6 @@
         "headers": ["stateX", "stateY", "stateZ", "stateVX", "stateVY", "stateVZ"]
     },
 
-    "orientation":{
-        "name": "orientaqtion",
-        "type": "CF",
-        "period": 10,
-        "variables": ["stabilizer.yaw"],
-        "headers": ["yaw"]
-    },
-
     "whisker":{
         "name": "Whisker",
         "type": "CF",
@@ -51,6 +43,14 @@
                       "Whisker.Barometer2",
                       "Whisker.Barometer3"],
         "headers": ["whisker1", "whisker2", "whisker3"]
+    },
+
+    "orientation":{
+        "name": "orientation",
+        "type": "CF",
+        "period": 10,
+        "variables": ["stabilizer.yaw"],
+        "headers": ["yaw"]
     },
 
     "flow":{
@@ -81,5 +81,19 @@
                       "kalman.statePY",
                       "kalman.statePZ"],
         "headers": ["kalX", "kalY", "kalZ", "kalPX", "kalPY", "kalPZ"]
+    },
+
+
+    "otpos":{
+        "name": "otpos",
+        "type": "CF",
+        "period": 10,
+        "variables": ["locSrv.x",
+                      "locSrv.y",
+                      "locSrv.z"],
+        "headers": ["otX", "otY", "otZ"]
     }
 }
+
+
+
