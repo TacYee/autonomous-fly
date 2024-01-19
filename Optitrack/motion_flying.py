@@ -368,9 +368,9 @@ def setup_logger():
     # flogger.enableConfig("acc")
     flogger.enableConfig("state")
     flogger.enableConfig("whisker")
-    # flogger.enableConfig("motor")
-    # flogger.enableConfig("otpos")
-    # flogger.enableConfig("orientation")
+    flogger.enableConfig("motor")
+    flogger.enableConfig("otpos")
+    flogger.enableConfig("orientation")
 
     # # UWB
     # if args["uwb"] == "twr":
