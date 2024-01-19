@@ -25,7 +25,7 @@
     "state":{
         "name": "state",
         "type": "CF",
-        "period": 10,
+        "period": 20,
         "variables": ["stateEstimate.x",
                       "stateEstimate.y",
                       "stateEstimate.z",
@@ -48,7 +48,7 @@
     "orientation":{
         "name": "orientation",
         "type": "CF",
-        "period": 10,
+        "period": 20,
         "variables": ["stabilizer.yaw"],
         "headers": ["yaw"]
     },
@@ -87,7 +87,7 @@
     "otpos":{
         "name": "otpos",
         "type": "CF",
-        "period": 10,
+        "period": 20,
         "variables": ["locSrv.x",
                       "locSrv.y",
                       "locSrv.z"],
