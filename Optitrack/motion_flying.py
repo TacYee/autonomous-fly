@@ -228,13 +228,13 @@ def move_linear_MC(scf,velocity):
     with MotionCommander(scf,default_height=0.5) as commander:
 
         commander.forward(0.5, velocity)
-        time.sleep(4)
+        time.sleep(2)
 
         commander.right(0.5,velocity)
-        time.sleep(4)
+        time.sleep(2)
 
         commander.back(0.5, velocity)
-        time.sleep(4)
+        time.sleep(2)
 
         commander.land(0.2)
 
@@ -248,17 +248,17 @@ def position_hl_control(scf,Velocity):
             default_height=0.5,
             controller=PositionHlCommander.CONTROLLER_PID) as pc:
         # Go to a coordinate
-        time.sleep(4)
+        time.sleep(2)
             
         # move forward 
         pc.forward(0.5)
 
-        time.sleep(4)
+        time.sleep(2)
 
         # move right
         pc.right(0.5)
 
-        time.sleep(4)
+        time.sleep(2)
 
         # move backward
             
@@ -268,7 +268,6 @@ def position_hl_control(scf,Velocity):
 
         pc.land()
 
-        pc.stop(4)
 
 def take_off_simple(scf):
     with MotionCommander(scf, default_height=0.5) as mc:
@@ -277,30 +276,26 @@ def take_off_simple(scf):
 
 
 
-def move_linear_HC(scf):
+def move_linear_HC(scf,Flight_time):
 
-    flight_time = 4
+    flight_time = Flight_time
 
     commander = scf.cf.high_level_commander
 
-    commander.takeoff(0.5, 2)
-    time.sleep(3)
+    commander.takeoff(0.8, 5)
+    time.sleep(5)
 
     commander.go_to(0.5, 0, 0, 0, flight_time, relative=True)
-    time.sleep(flight_time)
+    time.sleep(flight_time+1)
 
     commander.go_to(0, -0.5, 0, 0, flight_time, relative=True)
-    time.sleep(flight_time)
+    time.sleep(flight_time+1)
 
     commander.go_to(-0.5, 0, 0, 0, flight_time, relative=True)
-    time.sleep(flight_time)
+    time.sleep(flight_time+1)
 
-    commander.go_to(0, 0, -0.5, 0, flight_time, relative=True)
-    time.sleep(flight_time)
-
-    commander.go_to(0, 0, -0.2, 0, flight_time, relative=True)
-
-    commander.land(0, 2.0)
+    commander.land(0, 5)
+    time.sleep(5)
 
     commander.stop()
 
@@ -414,22 +409,17 @@ if __name__ == '__main__':
     parser.add_argument("--filename", type=str, default=None)
     args = vars(parser.parse_args())
     cflib.crtp.init_drivers()
-    cf=Crazyflie(rw_cache='./cache')
     # Connect to the mocap system
     mocap_wrapper = MocapWrapper(rigid_body_name)
-    with SyncCrazyflie(uri, cf) as scf:
+    with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
+        cf=scf.cf
         filelogger=setup_logger()
-        print('1')
-        print('1')
         # Set up a callback to handle data from the mocap system
         mocap_wrapper.on_pose = lambda pose: send_extpose_quat(cf, pose[0], pose[1], pose[2], pose[3])
-        print('1')
+
         adjust_orientation_sensitivity(cf)
         activate_kalman_estimator(cf)
         reset_estimator(cf)
-        try:
-            position_hl_control(scf,0.1)
-        except KeyboardInterrupt:
-            print("Keyboard Interrupt")
+        move_linear_HC(scf,5)
 
     mocap_wrapper.close()
