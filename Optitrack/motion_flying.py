@@ -420,6 +420,6 @@ if __name__ == '__main__':
         adjust_orientation_sensitivity(cf)
         activate_kalman_estimator(cf)
         reset_estimator(cf)
-        move_linear_HC(scf,1)
+        move_linear_HC(scf,5)
 
     mocap_wrapper.close()
