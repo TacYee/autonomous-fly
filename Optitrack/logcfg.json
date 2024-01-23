@@ -3,7 +3,7 @@
     "attitude":{
         "name": "attitude",
         "type": "CF",
-        "period": 10,
+        "period": 20,
         "variables": ["stabilizer.roll",
                       "stabilizer.pitch",
                       "stabilizer.yaw"],
@@ -13,7 +13,7 @@
     "motor":{
         "name": "motor",
         "type": "CF",
-        "period": 10,
+        "period": 20,
         "variables": ["motor.m1",
                       "motor.m2",
                       "motor.m3",
@@ -38,7 +38,7 @@
     "whisker":{
         "name": "Whisker",
         "type": "CF",
-        "period": 10,
+        "period": 20,
         "variables": ["Whisker.Barometer1",
                       "Whisker.Barometer2",
                       "Whisker.Barometer3"],
@@ -56,7 +56,7 @@
     "flow":{
         "name": "flow",
         "type": "CF",
-        "period": 10,
+        "period": 20,
         "variables": ["motion.deltaX",
                       "motion.deltaY"],
         "headers": ["flowX", "flowY"]
@@ -65,7 +65,7 @@
     "laser":{
         "name": "laser",
         "type": "CF",
-        "period": 10,
+        "period": 20,
         "variables": ["range.front"],
         "headers": ["laserFront"]
     },
@@ -73,7 +73,7 @@
     "kalman":{
         "name": "kalman",
         "type": "CF",
-        "period": 10,
+        "period": 20,
         "variables": ["kalman.stateX",
                       "kalman.stateY",
                       "kalman.stateZ",
