@@ -39,10 +39,20 @@
         "name": "Whisker",
         "type": "CF",
         "period": 20,
-        "variables": ["Whisker.Barometer1",
-                      "Whisker.Barometer2",
-                      "Whisker.Barometer3"],
-        "headers": ["whisker1", "whisker2", "whisker3"]
+        "variables": ["Whisker.Barometer1_1",
+                      "Whisker.Barometer1_2",
+                      "Whisker.Barometer1_3"],
+        "headers": ["whisker1_1", "whisker1_2", "whisker1_3"]
+    },
+
+    "whisker1":{
+        "name": "Whisker1",
+        "type": "CF",
+        "period": 20,
+        "variables": ["Whisker1.Barometer2_1",
+                      "Whisker1.Barometer2_2",
+                      "Whisker1.Barometer2_3"],
+        "headers": ["whisker2_1", "whisker2_2", "whisker2_3"]
     },
 
     "orientation":{
