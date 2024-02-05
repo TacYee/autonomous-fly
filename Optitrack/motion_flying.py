@@ -51,7 +51,7 @@ from cflib.utils import uri_helper
 
 
 # URI to the Crazyflie to connect to
-uri = uri_helper.uri_from_env(default='radio://0/80/2M/CFE7E7E701')
+uri = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7EF')
 
 # The host name or ip address of the mocap system
 host_name = '192.168.209.81'
@@ -350,11 +350,14 @@ def setup_logger():
         
     # Create filename from options and date
     log_file = get_filename()
+
     print(f"Log location: {log_file}")
+
 
     # Logger setup
     logconfig = args["logconfig"]
     flogger = FileLogger(cf, logconfig, log_file)
+    # flogger3 = FileLogger(cf, logconfig, log_file3)
 
     # Enable log configurations based on system setup:
     # Defaults
@@ -363,6 +366,7 @@ def setup_logger():
     # flogger.enableConfig("acc")
     flogger.enableConfig("state")
     flogger.enableConfig("whisker")
+    flogger.enableConfig("whisker1")
     flogger.enableConfig("motor")
     flogger.enableConfig("otpos")
     flogger.enableConfig("orientation")
@@ -382,6 +386,8 @@ def setup_logger():
     # if args["optitrack"] != "none":
     #     flogger.enableConfig("kalman")
     flogger.start()
+    # flogger2.start()
+    # flogger3.start()
     # # Estimator
     # if args["estimator"] == "kalman":
     #     flogger.enableConfig("kalman")
@@ -420,6 +426,6 @@ if __name__ == '__main__':
         adjust_orientation_sensitivity(cf)
         activate_kalman_estimator(cf)
         reset_estimator(cf)
-        move_linear_HC(scf,5)
+        move_linear_HC(scf,2)
 
     mocap_wrapper.close()
