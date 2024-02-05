@@ -51,7 +51,7 @@ from cflib.utils import uri_helper
 
 
 # URI to the Crazyflie to connect to
-uri = uri_helper.uri_from_env(default='radio://0/80/2M/CFE7E7E701')
+uri = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7EF')
 
 # The host name or ip address of the mocap system
 host_name = '192.168.209.81'
@@ -228,13 +228,13 @@ def move_linear_MC(scf,velocity):
     with MotionCommander(scf,default_height=0.5) as commander:
 
         commander.forward(0.5, velocity)
-        time.sleep(4)
+        time.sleep(2)
 
         commander.right(0.5,velocity)
-        time.sleep(4)
+        time.sleep(2)
 
         commander.back(0.5, velocity)
-        time.sleep(4)
+        time.sleep(2)
 
         commander.land(0.2)
 
@@ -248,17 +248,17 @@ def position_hl_control(scf,Velocity):
             default_height=0.5,
             controller=PositionHlCommander.CONTROLLER_PID) as pc:
         # Go to a coordinate
-        time.sleep(4)
+        time.sleep(2)
             
         # move forward 
         pc.forward(0.5)
 
-        time.sleep(4)
+        time.sleep(2)
 
         # move right
         pc.right(0.5)
 
-        time.sleep(4)
+        time.sleep(2)
 
         # move backward
             
@@ -268,7 +268,6 @@ def position_hl_control(scf,Velocity):
 
         pc.land()
 
-        pc.stop(4)
 
 def take_off_simple(scf):
     with MotionCommander(scf, default_height=0.5) as mc:
@@ -277,30 +276,26 @@ def take_off_simple(scf):
 
 
 
-def move_linear_HC(scf):
+def move_linear_HC(scf,Flight_time):
 
-    flight_time = 4
+    flight_time = Flight_time
 
     commander = scf.cf.high_level_commander
 
-    commander.takeoff(0.5, 2)
-    time.sleep(3)
+    commander.takeoff(0.8, 5)
+    time.sleep(5)
 
     commander.go_to(0.5, 0, 0, 0, flight_time, relative=True)
-    time.sleep(flight_time)
+    time.sleep(flight_time+1)
 
     commander.go_to(0, -0.5, 0, 0, flight_time, relative=True)
-    time.sleep(flight_time)
+    time.sleep(flight_time+1)
 
     commander.go_to(-0.5, 0, 0, 0, flight_time, relative=True)
-    time.sleep(flight_time)
+    time.sleep(flight_time+1)
 
-    commander.go_to(0, 0, -0.5, 0, flight_time, relative=True)
-    time.sleep(flight_time)
-
-    commander.go_to(0, 0, -0.2, 0, flight_time, relative=True)
-
-    commander.land(0, 2.0)
+    commander.land(0, 5)
+    time.sleep(5)
 
     commander.stop()
 
@@ -355,11 +350,14 @@ def setup_logger():
         
     # Create filename from options and date
     log_file = get_filename()
+
     print(f"Log location: {log_file}")
+
 
     # Logger setup
     logconfig = args["logconfig"]
     flogger = FileLogger(cf, logconfig, log_file)
+    # flogger3 = FileLogger(cf, logconfig, log_file3)
 
     # Enable log configurations based on system setup:
     # Defaults
@@ -368,6 +366,7 @@ def setup_logger():
     # flogger.enableConfig("acc")
     flogger.enableConfig("state")
     flogger.enableConfig("whisker")
+    flogger.enableConfig("whisker1")
     flogger.enableConfig("motor")
     flogger.enableConfig("otpos")
     flogger.enableConfig("orientation")
@@ -387,6 +386,8 @@ def setup_logger():
     # if args["optitrack"] != "none":
     #     flogger.enableConfig("kalman")
     flogger.start()
+    # flogger2.start()
+    # flogger3.start()
     # # Estimator
     # if args["estimator"] == "kalman":
     #     flogger.enableConfig("kalman")
@@ -414,22 +415,17 @@ if __name__ == '__main__':
     parser.add_argument("--filename", type=str, default=None)
     args = vars(parser.parse_args())
     cflib.crtp.init_drivers()
-    cf=Crazyflie(rw_cache='./cache')
     # Connect to the mocap system
     mocap_wrapper = MocapWrapper(rigid_body_name)
-    with SyncCrazyflie(uri, cf) as scf:
+    with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
+        cf=scf.cf
         filelogger=setup_logger()
-        print('1')
-        print('1')
         # Set up a callback to handle data from the mocap system
         mocap_wrapper.on_pose = lambda pose: send_extpose_quat(cf, pose[0], pose[1], pose[2], pose[3])
-        print('1')
+
         adjust_orientation_sensitivity(cf)
         activate_kalman_estimator(cf)
         reset_estimator(cf)
-        try:
-            position_hl_control(scf,0.1)
-        except KeyboardInterrupt:
-            print("Keyboard Interrupt")
+        move_linear_HC(scf,2)
 
     mocap_wrapper.close()
