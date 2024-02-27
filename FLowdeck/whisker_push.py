@@ -17,9 +17,9 @@ if len(sys.argv) > 1:
 # Only output errors from the logging framework
 logging.basicConfig(level=logging.ERROR)
 
-def model_linear_drift(data):
+def model_linear_drift(batch_data):
     x = np.arange(100).reshape(-1, 1) 
-    y = data
+    y = batch_data
     model = LinearRegression().fit(x, y)
     slope = model.coef_[0]
     intercept = model.intercept_
@@ -51,10 +51,10 @@ if __name__ == '__main__':
 
                     if is_touch(WHISKER.whisker1_2) or is_touch(WHISKER.whisker2_2):
                         velocity_x -= VELOCITY
+                        motion_commander.start_linear_motion(
+                            velocity_x, velocity_y, 0)
+                        time.sleep(1)
 
-                    motion_commander.start_linear_motion(
-                        velocity_x, velocity_y, 0)
-
-                    time.sleep(1)
+                    time.sleep(0.02)
 
             print('Demo terminated!')
