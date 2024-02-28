@@ -14,7 +14,7 @@ from cflib.positioning.motion_commander import MotionCommander
 from cflib.utils import uri_helper
 from FileLogger import FileLogger
 
-URI = uri_helper.uri_from_env(default='radio://0/80/2M/CFE7E7E701')
+URI = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7EF')
 
 DEFAULT_HEIGHT = 0.5
 
@@ -31,12 +31,22 @@ def take_off_simple(scf):
 
 def move_linear_simple(scf):
     with MotionCommander(scf, default_height=DEFAULT_HEIGHT) as mc:
-        time.sleep(1)
-        mc.forward(0.5)
-        time.sleep(1)
-        mc.back(0.5)
-        time.sleep(1)
+        time.sleep(5)
+        mc.forward(1.5)
+        time.sleep(5)
+        mc.back(1.5)
+        time.sleep(5)
         mc.stop
+
+def move_linear_simple_2(scf):
+    with MotionCommander(scf, default_height=DEFAULT_HEIGHT) as mc:
+        time.sleep(5)
+        mc.forward(0.5)
+        time.sleep(5)
+        mc.turn_left(180)
+        time.sleep(5)
+        mc.forward(0.5)
+        time.sleep(5)
 
 def move_linear_HC(scf):
 
@@ -160,32 +170,32 @@ def setup_logger():
 
 if __name__ == '__main__':
     # Parse arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--fileroot", type=str, required=True)
-    parser.add_argument("--logconfig", type=str, required=True)
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--fileroot", type=str, required=True)
+    # parser.add_argument("--logconfig", type=str, required=True)
 
-    parser.add_argument(
-        "--uwb", choices=["none", "twr", "tdoa"], type=str.lower, required=True
-    )
-    parser.add_argument("--flow", action="store_true")
+    # parser.add_argument(
+    #     "--uwb", choices=["none", "twr", "tdoa"], type=str.lower, required=True
+    # )
+    # parser.add_argument("--flow", action="store_true")
 
-    parser.add_argument(
-        "--optitrack",
-        choices=["none", "logging", "state"],
-        type=str.lower,
-        default="none",
-    )
+    # parser.add_argument(
+    #     "--optitrack",
+    #     choices=["none", "logging", "state"],
+    #     type=str.lower,
+    #     default="none",
+    # )
 
-    parser.add_argument("--optitrack_id", type=int, default=None)
-    parser.add_argument("--filename", type=str, default=None)
-    args = vars(parser.parse_args())
+    # parser.add_argument("--optitrack_id", type=int, default=None)
+    # parser.add_argument("--filename", type=str, default=None)
+    # args = vars(parser.parse_args())
 
     cflib.crtp.init_drivers()
     cf=Crazyflie(rw_cache='./cache')
 
     with SyncCrazyflie(URI, cf) as scf:
 
-        filelogger=setup_logger()
+        # filelogger=setup_logger()
 
         scf.cf.param.add_update_callback(group='deck', name='bcFlow2',
                                          cb=param_deck_flow)
@@ -195,6 +205,6 @@ if __name__ == '__main__':
             print('No flow deck detected!')
             sys.exit(1)
 
-        # move_linear_simple(scf)
+        move_linear_simple_2(scf)
 
 

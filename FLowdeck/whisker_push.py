@@ -9,7 +9,7 @@ from cflib.positioning.motion_commander import MotionCommander
 import whisker
 from cflib.utils import uri_helper
 
-URI = uri_helper.uri_from_env(default='radio://0/80/2M/CFE7E7E701')
+URI = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7EF')
 
 if len(sys.argv) > 1:
     URI = sys.argv[1]
@@ -35,9 +35,7 @@ if __name__ == '__main__':
     with SyncCrazyflie(URI, cf=cf) as scf:
         with MotionCommander(scf) as motion_commander:
             with whisker(scf) as WHISKER:
-                time.sleep(2)
                 keep_flying = True
-
                 while keep_flying:
                     VELOCITY = 0.2
                     velocity_x = 0.0

@@ -1,7 +1,6 @@
 from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from scipy import signal
-from sklearn.linear_model import LinearRegression
 import numpy as np
 
 class Whisker:
@@ -36,11 +35,12 @@ class Whisker:
         self._intercept_2 = None
         self._time_stamp = 0
 
-    def _linear_model(self,data):
-        x = np.arange(100).reshape(-1, 1)
-        model = LinearRegression().fit(x, data)
-        slope = model.coef_[0]
-        intercept = model.intercept_
+    
+    def _linear_fit(self, y):
+        X = np.arange(100).reshape(-1, 1)# Add column of ones for intercept
+        coefficients = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(y)
+        slope = coefficients[0]
+        intercept = coefficients[1]
         return slope, intercept
         
     def _calculate_filter_coefficients(self):
@@ -89,8 +89,8 @@ class Whisker:
         self._time_stamp += 1
 
         if self._time_stamp == 100:
-            self._slope_1, self._intercept_1 = self._linear_model(self._first_100_data_1_2)
-            self._slope_2, self._intercept_2 = self._linear_model(self._first_100_data_2_2)
+            self._slope_1, self._intercept_1 = self._linear_fit(self._first_100_data_1_2)
+            self._slope_2, self._intercept_2 = self._linear_fit(self._first_100_data_2_2)
 
     def _process_data_point(self, data_point_1, data_point_2):
         residuals_1 = data_point_1 - (self._slope_1 * self._time_stamp + self._intercept_1)
