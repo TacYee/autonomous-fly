@@ -17,15 +17,9 @@ if len(sys.argv) > 1:
 # Only output errors from the logging framework
 logging.basicConfig(level=logging.ERROR)
 
-def model_linear_drift(batch_data):
-    x = np.arange(100).reshape(-1, 1) 
-    y = batch_data
-    model = LinearRegression().fit(x, y)
-    slope = model.coef_[0]
-    intercept = model.intercept_
 
 def is_touch(distance):
-    threshold = 10  
+    threshold = 20  
 
     if distance is None:
         return False
