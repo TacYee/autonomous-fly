@@ -37,7 +37,7 @@ class Whisker:
 
     
     def _linear_fit(self, y):
-        X = np.arange(100).reshape(-1, 1)# Add column of ones for intercept
+        X =  np.column_stack((np.arange(100).reshape(-1, 1), np.ones_like(np.arange(100).reshape(-1, 1)))) # Add column of ones for intercept
         coefficients = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(y)
         slope = coefficients[0]
         intercept = coefficients[1]
@@ -131,3 +131,11 @@ class Whisker:
     @property
     def whisker2_3(self):
         return self._whisker2_3
+    
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
+

@@ -34,7 +34,9 @@ if __name__ == '__main__':
     cf = Crazyflie(rw_cache='./cache')
     with SyncCrazyflie(URI, cf=cf) as scf:
         with MotionCommander(scf) as motion_commander:
-            with whisker(scf) as WHISKER:
+            print(1)
+            with whisker.Whisker(scf) as WHISKER:
+                print(1)
                 keep_flying = True
                 while keep_flying:
                     VELOCITY = 0.2
@@ -43,10 +45,11 @@ if __name__ == '__main__':
 
                     if is_touch(WHISKER.whisker1_2) or is_touch(WHISKER.whisker2_2):
                         velocity_x -= VELOCITY
-                        motion_commander.start_linear_motion(
-                            velocity_x, velocity_y, 0)
-                        time.sleep(1)
 
-                    time.sleep(0.02)
+                    motion_commander.start_linear_motion(
+                        velocity_x, velocity_y, 0)
+                    
+                    time.sleep(0.1)
+
 
             print('Demo terminated!')

@@ -41,11 +41,11 @@ def move_linear_simple(scf):
 def move_linear_simple_2(scf):
     with MotionCommander(scf, default_height=DEFAULT_HEIGHT) as mc:
         time.sleep(5)
-        mc.forward(1.5)
+        mc.forward(0.5)
         time.sleep(5)
         mc.turn_left(180)
         time.sleep(5)
-        mc.forward(1.5)
+        mc.forward(0.5)
         time.sleep(5)
 
 def move_linear_HC(scf):
