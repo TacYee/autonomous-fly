@@ -16,7 +16,7 @@ from FileLogger import FileLogger
 
 URI = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7EF')
 
-DEFAULT_HEIGHT = 0.5
+DEFAULT_HEIGHT = 0.3
 
 deck_attached_event = Event()
 
@@ -41,11 +41,11 @@ def move_linear_simple(scf):
 def move_linear_simple_2(scf):
     with MotionCommander(scf, default_height=DEFAULT_HEIGHT) as mc:
         time.sleep(5)
-        mc.forward(0.5)
+        mc.forward(1.5)
         time.sleep(5)
         mc.turn_left(180)
         time.sleep(5)
-        mc.forward(0.5)
+        mc.forward(1.5)
         time.sleep(5)
 
 def move_linear_HC(scf):
