@@ -282,7 +282,7 @@ def move_linear_HC(scf,Flight_time):
 
     commander = scf.cf.high_level_commander
 
-    commander.takeoff(0.8, 5)
+    commander.takeoff(1.05, 5)
     time.sleep(5)
 
     commander.go_to(0.5, 0, 0, 0, flight_time, relative=True)
