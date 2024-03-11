@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.ERROR)
 
 
 def is_touch(distance):
-    threshold = 25  
+    threshold = 20  
 
     if distance is None:
         return False
@@ -43,12 +43,8 @@ if __name__ == '__main__':
                     if is_touch(WHISKER.whisker1_2) or is_touch(WHISKER.whisker2_2):
 
                         motion_commander.start_linear_motion(
-                            -0.2, 0, 0)
-                        time.sleep(1)
-
-                        motion_commander.start_linear_motion(
                             0, -0.2, 0)
-                        time.sleep(1)
+                        time.sleep(0.01)
                     else:
 
                         motion_commander.start_linear_motion(
