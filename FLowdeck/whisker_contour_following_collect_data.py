@@ -134,9 +134,9 @@ if __name__ == '__main__':
     cf = Crazyflie(rw_cache='./cache')
     with SyncCrazyflie(URI, cf=cf) as scf:
         with MotionCommander(scf) as motion_commander:
-            filelogger=setup_logger()
+            time.sleep(3)
             with whisker.Whisker(scf) as WHISKER:
-          
+                filelogger=setup_logger()
                 keep_flying = True
                 while keep_flying:
 

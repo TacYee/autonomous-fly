@@ -35,6 +35,7 @@ from pathlib import Path
 import os
 from datetime import datetime
 from FileLogger import FileLogger
+import whisker
 
 import motioncapture
 
@@ -223,81 +224,7 @@ def run_sequence(cf, trajectory_id, duration):
     time.sleep(2)
     commander.stop()
 
-def move_linear_MC(scf,velocity):
 
-    with MotionCommander(scf,default_height=0.5) as commander:
-
-        commander.forward(0.5, velocity)
-        time.sleep(2)
-
-        commander.right(0.5,velocity)
-        time.sleep(2)
-
-        commander.back(0.5, velocity)
-        time.sleep(2)
-
-        commander.land(0.2)
-
-        commander.stop()
-
-def position_hl_control(scf,Velocity):
-    with PositionHlCommander(
-            scf,
-            x=0.0, y=0.0, z=0.0,
-            default_velocity=Velocity,
-            default_height=0.5,
-            controller=PositionHlCommander.CONTROLLER_PID) as pc:
-        # Go to a coordinate
-        time.sleep(2)
-            
-        # move forward 
-        pc.forward(0.5)
-
-        time.sleep(2)
-
-        # move right
-        pc.right(0.5)
-
-        time.sleep(2)
-
-        # move backward
-            
-        pc.back(0.5)
-
-        time.sleep(4)
-
-        pc.land()
-
-
-def take_off_simple(scf):
-    with MotionCommander(scf, default_height=0.5) as mc:
-        time.sleep(3)
-        mc.stop()
-
-
-
-def move_linear_HC(scf,Flight_time):
-
-    flight_time = Flight_time
-
-    commander = scf.cf.high_level_commander
-
-    commander.takeoff(1.05, 5)
-    time.sleep(5)
-
-    commander.go_to(0.5, 0, 0, 0, flight_time, relative=True)
-    time.sleep(flight_time+1)
-
-    commander.go_to(0, -0.5, 0, 0, flight_time, relative=True)
-    time.sleep(flight_time+1)
-
-    commander.go_to(-0.5, 0, 0, 0, flight_time, relative=True)
-    time.sleep(flight_time+1)
-
-    commander.land(0, 5)
-    time.sleep(5)
-
-    commander.stop()
 
 def get_filename():
     fileroot = args["fileroot"] 
@@ -392,6 +319,13 @@ def setup_logger():
     # if args["estimator"] == "kalman":
     #     flogger.enableConfig("kalman")
 
+def is_touch(distance):
+    threshold = 20  
+
+    if distance is None:
+        return False
+    else:
+        return distance > threshold
 
 if __name__ == '__main__':
     # Parse arguments
@@ -415,17 +349,44 @@ if __name__ == '__main__':
     parser.add_argument("--filename", type=str, default=None)
     args = vars(parser.parse_args())
     cflib.crtp.init_drivers()
+    cf = Crazyflie(rw_cache='./cache')
     # Connect to the mocap system
     mocap_wrapper = MocapWrapper(rigid_body_name)
-    with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
+
+    with SyncCrazyflie(uri, cf=cf) as scf:
         cf=scf.cf
-        filelogger=setup_logger()
-        # Set up a callback to handle data from the mocap system
         mocap_wrapper.on_pose = lambda pose: send_extpose_quat(cf, pose[0], pose[1], pose[2], pose[3])
 
         adjust_orientation_sensitivity(cf)
         activate_kalman_estimator(cf)
         reset_estimator(cf)
-        move_linear_HC(scf,2.5)
 
-    mocap_wrapper.close()
+        with MotionCommander(scf, default_height=1.2) as motion_commander:
+            time.sleep(3)
+
+            with whisker.Whisker(scf) as WHISKER:
+                filelogger=setup_logger()
+                keep_flying = True
+                while keep_flying:
+
+                    if is_touch(WHISKER.whisker1_2) or is_touch(WHISKER.whisker2_2):
+
+                        motion_commander.start_linear_motion(
+                            0, -0.2, 0)
+                        time.sleep(3)
+
+                        motion_commander.start_linear_motion(
+                            -0.2, 0, 0)
+                        time.sleep(2)
+
+                        keep_flying=False
+
+                    else:
+
+                        motion_commander.start_linear_motion(
+                            0.2, 0, 0)
+                    
+                        time.sleep(0.01)
+
+            mocap_wrapper.close()
+            print('Demo terminated!')
