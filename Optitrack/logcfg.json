@@ -59,9 +59,9 @@
         "name": "orientation",
         "type": "CF",
         "period": 20,
-        "variables": ["stabilizer.roll",
+        "variables": ["stabilizer.yaw",
                       "stabilizer.pitch"],
-        "headers": ["roll", "pitch"]
+        "headers": ["yaw", "pitch"]
     },
 
     "flow":{
