@@ -320,7 +320,7 @@ def setup_logger():
     #     flogger.enableConfig("kalman")
 
 def is_touch(distance):
-    threshold = 20  
+    threshold = 17
 
     if distance is None:
         return False
