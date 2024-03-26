@@ -295,7 +295,7 @@ def setup_logger():
     flogger.enableConfig("whisker")
     flogger.enableConfig("whisker1")
     flogger.enableConfig("motor")
-    flogger.enableConfig("otpos")
+    # flogger.enableConfig("otpos")
     flogger.enableConfig("orientation")
 
     # # UWB
@@ -320,7 +320,7 @@ def setup_logger():
     #     flogger.enableConfig("kalman")
 
 def is_touch(distance):
-    threshold = 17
+    threshold = 18
 
     if distance is None:
         return False
@@ -361,23 +361,24 @@ if __name__ == '__main__':
         activate_kalman_estimator(cf)
         reset_estimator(cf)
 
-        with MotionCommander(scf, default_height=1.2) as motion_commander:
-            time.sleep(3)
+        with MotionCommander(scf, default_height=1.3) as motion_commander:
+            time.sleep(2)
 
             with whisker.Whisker(scf) as WHISKER:
                 filelogger=setup_logger()
                 keep_flying = True
                 while keep_flying:
 
-                    if is_touch(WHISKER.whisker1_2) or is_touch(WHISKER.whisker2_2):
+                    if is_touch(WHISKER.whisker1_1) or is_touch(WHISKER.whisker2_2):
+
 
                         motion_commander.start_linear_motion(
                             0, -0.2, 0)
-                        time.sleep(3)
+                        time.sleep(2.5)
 
                         motion_commander.start_linear_motion(
                             -0.2, 0, 0)
-                        time.sleep(2)
+                        time.sleep(3)
 
                         keep_flying=False
 
