@@ -295,7 +295,7 @@ def setup_logger():
     flogger.enableConfig("whisker")
     flogger.enableConfig("whisker1")
     flogger.enableConfig("motor")
-    # flogger.enableConfig("otpos")
+    flogger.enableConfig("otpos")
     flogger.enableConfig("orientation")
 
     # # UWB
