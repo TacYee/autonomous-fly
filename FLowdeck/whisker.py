@@ -18,8 +18,8 @@ class Whisker:
             self._cf = crazyflie
         self._log_config = self._create_log_config(rate_ms)
 
-        # self._whisker1_1 = None
-        self._whisker1_2 = None
+        self._whisker1_1 = None
+        # self._whisker1_2 = None
         # self._whisker1_3 = None
         # self._whisker2_1 = None
         self._whisker2_2 = None
@@ -27,10 +27,10 @@ class Whisker:
         self._b, self._a = self._calculate_filter_coefficients()
         self._zi1 = None
         self._zi2 = None
-        self._first_100_data_1_2 = []
+        self._first_100_data_1_1 = []
         self._first_100_data_2_2 = [] 
-        self._slope_1 = None  # 保存线性模型的斜率
-        self._intercept_1 = None  # 保存线性模型的截距
+        self._slope_1 = None  # save slope
+        self._intercept_1 = None  # save intercept
         self._slope_2 = None
         self._intercept_2 = None
         self._time_stamp = 0
@@ -47,7 +47,7 @@ class Whisker:
         """
         Calculate the filter coefficients for a lowpass filter.
         """
-        high_freq = 3
+        high_freq = 1
         low_freq = 0.1
         fs = 50
         b, a = signal.butter(1, [low_freq / (0.5 * fs), high_freq / (0.5 * fs)], 'bandpass')
@@ -56,8 +56,8 @@ class Whisker:
 
     def _create_log_config(self, rate_ms):
         log_config = LogConfig('Whisker1', rate_ms)
-        # log_config.add_variable(self.WHISKER1_1)
-        log_config.add_variable(self.WHISKER1_2)
+        log_config.add_variable(self.WHISKER1_1)
+        # log_config.add_variable(self.WHISKER1_2)
         # log_config.add_variable(self.WHISKER1_3)
         # log_config.add_variable(self.WHISKER2_1)
         log_config.add_variable(self.WHISKER2_2)
@@ -79,23 +79,23 @@ class Whisker:
 
     def _data_received(self, timestamp, data, logconf):
         if self._slope_1 is None:
-            self._initialize_linear_model(data[self.WHISKER1_2], data[self.WHISKER2_2])
+            self._initialize_linear_model(data[self.WHISKER1_1], data[self.WHISKER2_2])
         else:
-            self._process_data_point(data[self.WHISKER1_2], data[self.WHISKER2_2])
+            self._process_data_point(data[self.WHISKER1_1], data[self.WHISKER2_2])
 
     def _initialize_linear_model(self, data_point_1, data_point_2):
-        self._first_100_data_1_2.append(data_point_1)
+        self._first_100_data_1_1.append(data_point_1)
         self._first_100_data_2_2.append(data_point_2)
         self._time_stamp += 1
 
         if self._time_stamp == 100:
-            self._slope_1, self._intercept_1 = self._linear_fit(self._first_100_data_1_2)
+            self._slope_1, self._intercept_1 = self._linear_fit(self._first_100_data_1_1)
             self._slope_2, self._intercept_2 = self._linear_fit(self._first_100_data_2_2)
 
     def _process_data_point(self, data_point_1, data_point_2):
         residuals_1 = data_point_1 - (self._slope_1 * self._time_stamp + self._intercept_1)
         residuals_2 = data_point_2 - (self._slope_2 * self._time_stamp + self._intercept_2)
-        self._whisker1_2, self._zi1 = self._apply_bandpass_filter_realtime(residuals_1, self._zi1)
+        self._whisker1_1, self._zi1 = self._apply_bandpass_filter_realtime(residuals_1, self._zi1)
         self._whisker2_2, self._zi2 = self._apply_bandpass_filter_realtime(residuals_2, self._zi2)
         self._time_stamp += 1
 
@@ -138,4 +138,6 @@ class Whisker:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
+
+
 
