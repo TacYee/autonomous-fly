@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 import csv
+import pandas as pd
 import os
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # def load_data(train_file, test_file):
@@ -182,13 +183,15 @@ def save_output_image(model, data_loader, output_file):
 
     # 将列表转换为 numpy 数组
     all_outputs = np.concatenate(all_outputs, axis=0)
+    predict = np.squeeze(all_outputs) 
     all_labels = np.concatenate(all_labels, axis=0)
 
-
+    df = pd.DataFrame({'Predicted': predict})
+    df.to_csv('whisker2_MLP_predicted_results.csv', index=False)
     # 在一个图像中展示所有验证集样本的输出
     plt.figure(figsize=(10, 6))
     plt.plot(all_outputs, label='Predicted')
-    plt.plot(all_labels[:,1], label='Ground Truth')
+    plt.plot(all_labels, label='Ground Truth')
     plt.legend()
     plt.xlabel('Sample Index')
     plt.ylabel('Output')
