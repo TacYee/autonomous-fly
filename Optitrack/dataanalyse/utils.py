@@ -167,7 +167,7 @@ def dataset( data, targets, sequence_length, trial_sizes):
                 output_pair.append((input_data,target_data))
         return output_pair  
 
-def save_output_image(model, data_loader, output_file):
+def save_output_image(model, data_loader, laser, output_file):
     model.eval()
     all_outputs = []
     all_labels = []
@@ -183,21 +183,49 @@ def save_output_image(model, data_loader, output_file):
 
     # 将列表转换为 numpy 数组
     all_outputs = np.concatenate(all_outputs, axis=0)
-    predict = np.squeeze(all_outputs) 
     all_labels = np.concatenate(all_labels, axis=0)
 
-    df = pd.DataFrame({'Predicted': predict})
-    df.to_csv('whisker2_MLP_predicted_results.csv', index=False)
     # 在一个图像中展示所有验证集样本的输出
     plt.figure(figsize=(10, 6))
-    plt.plot(all_outputs, label='Predicted')
+    plt.plot(laser, label='Laser')
+    plt.plot(all_outputs, label='Whisker')
     plt.plot(all_labels, label='Ground Truth')
     plt.legend()
     plt.xlabel('Sample Index')
     plt.ylabel('Output')
-    plt.savefig(output_file)
+    plt.savefig(f"{output_file}")
     plt.close()
 
+def save_deviation_image(model, data_loader, laser, output_file):
+    model.eval()
+    all_outputs = []
+    all_labels = []
+    with torch.no_grad():
+        for inputs, labels in data_loader:
+            inputs = inputs.to(device)
+
+            outputs= model(inputs)
+
+            # 将输出和真实标签保存到列表中
+            all_outputs.append(outputs.cpu().numpy())
+            all_labels.append(labels.cpu().numpy())
+
+    # 将列表转换为 numpy 数组
+    all_outputs = np.concatenate(all_outputs, axis=0)
+    all_labels = np.concatenate(all_labels, axis=0)
+    
+    # output the deviation
+    plt.figure(figsize=(10, 6))
+    plt.scatter(laser , all_labels,s=3,label="laser")
+    plt.scatter(all_outputs , all_labels,s=3,label='whisker')
+    plt.scatter(all_labels , all_labels ,s=3,label='GT')
+    plt.title(f"MLP_deviation")
+    plt.legend()
+    plt.xlabel('Distance (mm)')
+    plt.ylabel('Output')
+    plt.savefig(f"{output_file}")
+    plt.close()
+    
 def save_loss_image(train_losses, val_losses, output_file):
     epochs = len(train_losses)
     plt.plot(range(1, epochs + 1), train_losses, label='Train Loss')
