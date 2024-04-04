@@ -225,6 +225,49 @@ def save_deviation_image(model, data_loader, laser, output_file):
     plt.ylabel('Output')
     plt.savefig(f"{output_file}")
     plt.close()
+
+def save_reconstruction_surface(model, data_loader, orientation, position, laser, output_file):
+    model.eval()
+    all_outputs = []
+    all_labels = []
+    with torch.no_grad():
+        for inputs, labels in data_loader:
+            inputs = inputs.to(device)
+
+            outputs= model(inputs)
+
+            # 将输出和真实标签保存到列表中
+            all_outputs.append(outputs.cpu().numpy())
+            all_labels.append(labels.cpu().numpy())
+
+    # 将列表转换为 numpy 数组
+    all_outputs = np.concatenate(all_outputs, axis=0).flatten()
+    all_labels = np.concatenate(all_labels, axis=0).flatten()
+
+    position_X = position[:,1] * 1000
+    position_Y = position[:,0] * 1000
+
+    GT_x = -(218 - all_labels + 16) * np.sin(np.radians(orientation)) + position_X
+    GT_y = (218 - all_labels + 16) * np.cos(np.radians(orientation)) + position_Y
+
+    Laser_x = -(218 - laser + 16) * np.sin(np.radians(orientation)) + position_X
+    Laser_y = (218 - laser + 16) * np.cos(np.radians(orientation)) + position_Y
+    
+    Whisker_x = -(218 - all_outputs +16) * np.sin(np.radians(orientation)) + position_X
+    Whisker_y = (218 - all_outputs +16) * np.cos(np.radians(orientation)) + position_Y
+    # output the deviation
+    plt.figure(figsize=(10, 6))
+    plt.scatter(GT_x, GT_y,s=0.1,c='black', label='GT')
+    plt.scatter(position_X , position_Y ,s=1, label='position')
+    plt.scatter(Laser_x, Laser_y,s=1, label='laser')
+    plt.scatter(Whisker_x, Whisker_y,s=1, label='whisker')
+    plt.title(f"Surface Reconstruction_Whisker")
+    plt.legend()
+    plt.xlabel('X (mm)')
+    plt.ylabel('Y (mm)')
+    plt.savefig(f"{output_file}")
+    plt.close()
+
     
 def save_loss_image(train_losses, val_losses, output_file):
     epochs = len(train_losses)
