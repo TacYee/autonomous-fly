@@ -149,22 +149,22 @@ def load_data(data_folder):
 
 #         return input_data_batch, target_data_batch
         
-def dataset( data, targets, sequence_length, trial_sizes):
+def dataset( data, targets, sequence_length):
         data = data
         targets = targets
         sequence_length = sequence_length
-        trial_sizes = trial_sizes
         output_pair=[]
-        for i in range (len(trial_sizes)):
-            trial_size = trial_sizes[i]
-            start_idx = sum(trial_sizes[:i])
-            end_idx = start_idx + trial_size - sequence_length + 1
-            for j in range(start_idx, end_idx, 1):
-                input_data = data[j:j + sequence_length]
-                target_data = targets[j + sequence_length - 1]
-                input_data = torch.tensor(input_data, dtype=torch.float32)
-                target_data = torch.tensor(target_data, dtype=torch.float32)
-                output_pair.append((input_data,target_data))
+        start_idx = 0
+        end_idx = len(targets)
+        for i in range(start_idx, end_idx, 1):
+            if i-sequence_length+1 < 0:
+                input_data = np.concatenate((data[i-sequence_length+1:], data[:i + 1])) 
+            else:
+                input_data = data[i - sequence_length + 1 : i + 1]
+            target_data = targets[i]
+            input_data = torch.tensor(input_data, dtype=torch.float32)
+            target_data = torch.tensor(target_data, dtype=torch.float32)
+            output_pair.append((input_data,target_data))
         return output_pair  
 
 def save_output_image(model, data_loader, laser, output_file):
