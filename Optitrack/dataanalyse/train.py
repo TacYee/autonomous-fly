@@ -20,7 +20,6 @@ def train_model(model, train_loader, criterion, optimizer):
         output= model(inputs)
         # Calculate task-specific losses
         loss = criterion(output.squeeze(1), targets)
-        
         # Backpropagate and optimize
         loss_sum = loss
         loss_sum.backward()
