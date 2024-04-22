@@ -19,11 +19,11 @@ class Whisker:
         self._log_config = self._create_log_config(rate_ms)
 
         self._whisker1_1 = None
-        # self._whisker1_2 = None
-        # self._whisker1_3 = None
-        # self._whisker2_1 = None
+        self._whisker1_2 = None
+        self._whisker1_3 = None
+        self._whisker2_1 = None
         self._whisker2_2 = None
-        # self._whisker2_3 = None
+        self._whisker2_3 = None
         self._b, self._a = self._calculate_filter_coefficients()
         self._zi1 = None
         self._zi2 = None
@@ -48,7 +48,7 @@ class Whisker:
         Calculate the filter coefficients for a lowpass filter.
         """
         high_freq = 1
-        low_freq = 0.1
+        low_freq = 0.05
         fs = 50
         b, a = signal.butter(1, [low_freq / (0.5 * fs), high_freq / (0.5 * fs)], 'bandpass')
         return b, a
@@ -57,11 +57,11 @@ class Whisker:
     def _create_log_config(self, rate_ms):
         log_config = LogConfig('Whisker1', rate_ms)
         log_config.add_variable(self.WHISKER1_1)
-        # log_config.add_variable(self.WHISKER1_2)
-        # log_config.add_variable(self.WHISKER1_3)
-        # log_config.add_variable(self.WHISKER2_1)
+        log_config.add_variable(self.WHISKER1_2)
+        log_config.add_variable(self.WHISKER1_3)
+        log_config.add_variable(self.WHISKER2_1)
         log_config.add_variable(self.WHISKER2_2)
-        # log_config.add_variable(self.WHISKER2_3)
+        log_config.add_variable(self.WHISKER2_3)
 
         log_config.data_received_cb.add_callback(self._data_received)
 

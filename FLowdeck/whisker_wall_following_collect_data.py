@@ -113,14 +113,48 @@ def setup_logger():
     #     flogger.enableConfig("kalman")
 
 def is_touch(distance):
-    threshold = 10  
 
     if distance is None:
-        return False
+        return 0
     else:
-        return distance > threshold
+        return distance 
+    
+# def start_motion(direction):
+#     if direction == "forward":
+#         motion_commander.start_linear_motion(0.2, 0, 0)
+#     elif direction == "backward":
+#         motion_commander.start_linear_motion(-0.2, 0, 0)
+#     elif direction == "turn_left":
+#         motion_commander.start_turn_left(10)
+#     elif direction == "turn_right":
+#         motion_commander.start_turn_right(10)
+
+def check_whiskers(MIN_THRESHOLD1, MAX_THRESHOLD1, MIN_THRESHOLD2, MAX_THRESHOLD2):
+    if MAX_THRESHOLD1 > WHISKER.whisker1_1> MIN_THRESHOLD1 and MAX_THRESHOLD2 > WHISKER.whisker2_2> MIN_THRESHOLD2:
+        start_motion("turn_right")
+    elif WHISKER.whisker1_1 > MAX_THRESHOLD1 and WHISKER.whisker2_2 > MAX_THRESHOLD2:
+        start_motion("turn_left")
+    elif WHISKER.whisker1_1 > MAX_THRESHOLD1 and WHISKER.whisker2_2 > MAX_THRESHOLD2:
+        start_motion("linear")
+    elif WHISKER.whisker1_1 < MIN_THRESHOLD1 and WHISKER.whisker2_2 < MIN_THRESHOLD2:
+        start_motion("linear")
+    elif WHISKER.whisker1_1 < MIN_THRESHOLD1:
+        start_motion("turn_right")
+    elif WHISKER.whisker2_2 < MIN_THRESHOLD2:
+        start_motion("turn_left")
+    elif WHISKER.whisker1_1 > MAX_THRESHOLD1:
+        start_motion("turn_left")
+    elif WHISKER.whisker2_2 > MAX_THRESHOLD2:
+        start_motion("turn_right")
+    else:
+        start_motion("linear")
 
 
+MIN_THRESHOLD1 = 15
+MAX_THRESHOLD1 = 80
+
+MIN_THRESHOLD2 = 30
+MAX_THRESHOLD2 = 180
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -139,18 +173,28 @@ if __name__ == '__main__':
                 filelogger=setup_logger()
                 keep_flying = True
                 while keep_flying:
-
-                    if is_touch(WHISKER.whisker1_2) or is_touch(WHISKER.whisker2_2):
-
-                        motion_commander.start_linear_motion(
-                            0, -0.2, 0)
+                    if MAX_THRESHOLD1 > is_touch(WHISKER.whisker1_1) > MIN_THRESHOLD1 and MAX_THRESHOLD2 > is_touch(WHISKER.whisker2_2)> MIN_THRESHOLD2:
+                        motion_commander.start_linear_motion(0, -0.2, 0)
                         time.sleep(0.01)
-                    else:
-
-                        motion_commander.start_linear_motion(
-                            0.2, 0, 0)
-                    
+                    elif MAX_THRESHOLD1 > is_touch(WHISKER.whisker1_1) > MIN_THRESHOLD1 and is_touch(WHISKER.whisker2_2) < MIN_THRESHOLD2:
+                        motion_commander.start_turn_left(10)
                         time.sleep(0.01)
-
+                    elif MAX_THRESHOLD1 > is_touch(WHISKER.whisker1_1) > MIN_THRESHOLD1 and is_touch(WHISKER.whisker2_2) > MAX_THRESHOLD2:
+                        motion_commander.start_turn_right(10)
+                        time.sleep(0.01)
+                    elif is_touch(WHISKER.whisker1_1) < MIN_THRESHOLD1 and MAX_THRESHOLD2 > is_touch(WHISKER.whisker2_2) > MIN_THRESHOLD2:
+                        motion_commander.start_turn_right(10)
+                        time.sleep(0.01)
+                    elif is_touch(WHISKER.whisker1_1) > MAX_THRESHOLD1 and MAX_THRESHOLD2 > is_touch(WHISKER.whisker2_2)> MIN_THRESHOLD2:
+                        motion_commander.start_turn_left(10)
+                        time.sleep(0.01)
+                    elif is_touch(WHISKER.whisker1_1) > MAX_THRESHOLD1 and is_touch(WHISKER.whisker2_2) > MAX_THRESHOLD2 :
+                        motion_commander.start_linear_motion(-0.2, 0, 0)
+                        time.sleep(0.01)
+                    else :
+                        motion_commander.start_linear_motion(0.2, 0, 0)
+                        time.sleep(0.01)
 
             print('Demo terminated!')
+
+# python3 whisker_hovering_collect_data.py --fileroot data/20240422 --logconfig logcfg.json
