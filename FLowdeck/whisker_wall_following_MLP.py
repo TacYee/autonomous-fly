@@ -14,6 +14,8 @@ import whisker
 from FileLogger import FileLogger
 from cflib.utils import uri_helper
 
+import torch
+
 URI = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7EF')
 
 
@@ -119,11 +121,30 @@ def is_touch(distance):
     else:
         return distance 
     
-def dis_net(distance):
+model1 = torch.load('your_model.pth')
+model2 = torch.load('your_model.pth')
 
-    if distance is None or distance < 10:
+def dis_net1(whisker1, whisker2, whisker3):
+
+    if whisker1 is None or whisker1 < 15:
         return 0
     else:
+        input_data = torch.tensor([[whisker1, whisker2, whisker3]], dtype=torch.float32)
+        with torch.no_grad():
+            output = model1(input_data)
+    
+        return output
+    
+def dis_net2(whisker1, whisker2, whisker3):
+
+    if whisker2 is None or whisker2 < 15:
+        return 0
+    else:
+        input_data = torch.tensor([[whisker1, whisker2, whisker3]], dtype=torch.float32)
+        with torch.no_grad():
+            output = model2(input_data)
+    
+        return output
     
 # def start_motion(direction):
 #     if direction == "forward":
@@ -156,11 +177,8 @@ def dis_net(distance):
 #         start_motion("linear")
 
 
-MIN_THRESHOLD1 = 15
-MAX_THRESHOLD1 = 80
-
-MIN_THRESHOLD2 = 30
-MAX_THRESHOLD2 = 180
+MIN_THRESHOLD = 30
+MAX_THRESHOLD = 50
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -179,22 +197,22 @@ if __name__ == '__main__':
                 filelogger=setup_logger()
                 keep_flying = True
                 while keep_flying:
-                    if MAX_THRESHOLD1 > is_touch(WHISKER.whisker1_1) > MIN_THRESHOLD1 and MAX_THRESHOLD2 > is_touch(WHISKER.whisker2_2)> MIN_THRESHOLD2:
+                    if MAX_THRESHOLD > dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) > MIN_THRESHOLD and MAX_THRESHOLD > dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3)> MIN_THRESHOLD:
                         motion_commander.start_linear_motion(0, -0.2, 0)
                         time.sleep(0.01)
-                    elif MAX_THRESHOLD1 > is_touch(WHISKER.whisker1_1) > MIN_THRESHOLD1 and is_touch(WHISKER.whisker2_2) < MIN_THRESHOLD2:
+                    elif MAX_THRESHOLD > dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) > MIN_THRESHOLD and dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3) < MIN_THRESHOLD:
                         motion_commander.start_turn_left(10)
                         time.sleep(0.01)
-                    elif MAX_THRESHOLD1 > is_touch(WHISKER.whisker1_1) > MIN_THRESHOLD1 and is_touch(WHISKER.whisker2_2) > MAX_THRESHOLD2:
+                    elif MAX_THRESHOLD > dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) > MIN_THRESHOLD and dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3) > MAX_THRESHOLD:
                         motion_commander.start_turn_right(10)
                         time.sleep(0.01)
-                    elif is_touch(WHISKER.whisker1_1) < MIN_THRESHOLD1 and MAX_THRESHOLD2 > is_touch(WHISKER.whisker2_2) > MIN_THRESHOLD2:
+                    elif dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) < MIN_THRESHOLD and MAX_THRESHOLD > dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3) > MIN_THRESHOLD:
                         motion_commander.start_turn_right(10)
                         time.sleep(0.01)
-                    elif is_touch(WHISKER.whisker1_1) > MAX_THRESHOLD1 and MAX_THRESHOLD2 > is_touch(WHISKER.whisker2_2)> MIN_THRESHOLD2:
+                    elif dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) > MAX_THRESHOLD and MAX_THRESHOLD > dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3)> MIN_THRESHOLD:
                         motion_commander.start_turn_left(10)
                         time.sleep(0.01)
-                    elif is_touch(WHISKER.whisker1_1) > MAX_THRESHOLD1 and is_touch(WHISKER.whisker2_2) > MAX_THRESHOLD2 :
+                    elif dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) > MAX_THRESHOLD and dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3) > MAX_THRESHOLD :
                         motion_commander.start_linear_motion(-0.2, 0, 0)
                         time.sleep(0.01)
                     else :
