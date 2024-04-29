@@ -15,6 +15,7 @@ from FileLogger import FileLogger
 from cflib.utils import uri_helper
 
 import torch
+from model import *
 
 URI = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7EF')
 
@@ -114,15 +115,14 @@ def setup_logger():
     # if args["estimator"] == "kalman":
     #     flogger.enableConfig("kalman")
 
-def is_touch(distance):
-
-    if distance is None:
-        return 0
-    else:
-        return distance 
-    
-model1 = torch.load('your_model.pth')
-model2 = torch.load('your_model.pth')
+model1 = MLP(3, 32, 1, 0.1)
+model2 = MLP(3, 32, 1, 0.1)
+best_model1_path='mlp_bs_32_lr_0.001_reg_0.001_do_0.1_rmse_9.0575_whisker1.pt'
+best_model2_path='mlp_bs_32_lr_0.001_reg_0.01_do_0.1_rmse_9.3832_whisker2.pt'
+model1.load_state_dict(torch.load(best_model1_path))
+model2.load_state_dict(torch.load(best_model2_path))
+model1.eval()
+model2.eval()
 
 def dis_net1(whisker1, whisker2, whisker3):
 
@@ -145,40 +145,14 @@ def dis_net2(whisker1, whisker2, whisker3):
             output = model2(input_data)
     
         return output
-    
-# def start_motion(direction):
-#     if direction == "forward":
-#         motion_commander.start_linear_motion(0.2, 0, 0)
-#     elif direction == "backward":
-#         motion_commander.start_linear_motion(-0.2, 0, 0)
-#     elif direction == "turn_left":
-#         motion_commander.start_turn_left(10)
-#     elif direction == "turn_right":
-#         motion_commander.start_turn_right(10)
-
-# def check_whiskers(MIN_THRESHOLD1, MAX_THRESHOLD1, MIN_THRESHOLD2, MAX_THRESHOLD2):
-#     if MAX_THRESHOLD1 > WHISKER.whisker1_1> MIN_THRESHOLD1 and MAX_THRESHOLD2 > WHISKER.whisker2_2> MIN_THRESHOLD2:
-#         start_motion("turn_right")
-#     elif WHISKER.whisker1_1 > MAX_THRESHOLD1 and WHISKER.whisker2_2 > MAX_THRESHOLD2:
-#         start_motion("turn_left")
-#     elif WHISKER.whisker1_1 > MAX_THRESHOLD1 and WHISKER.whisker2_2 > MAX_THRESHOLD2:
-#         start_motion("linear")
-#     elif WHISKER.whisker1_1 < MIN_THRESHOLD1 and WHISKER.whisker2_2 < MIN_THRESHOLD2:
-#         start_motion("linear")
-#     elif WHISKER.whisker1_1 < MIN_THRESHOLD1:
-#         start_motion("turn_right")
-#     elif WHISKER.whisker2_2 < MIN_THRESHOLD2:
-#         start_motion("turn_left")
-#     elif WHISKER.whisker1_1 > MAX_THRESHOLD1:
-#         start_motion("turn_left")
-#     elif WHISKER.whisker2_2 > MAX_THRESHOLD2:
-#         start_motion("turn_right")
-#     else:
-#         start_motion("linear")
 
 
 MIN_THRESHOLD = 30
 MAX_THRESHOLD = 50
+Distances1 = []
+Distances2 = []
+timestamps = []
+file_name = "whisker_data_MLP.csv"
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -196,29 +170,44 @@ if __name__ == '__main__':
             with whisker.Whisker(scf) as WHISKER:
                 filelogger=setup_logger()
                 keep_flying = True
-                while keep_flying:
-                    if MAX_THRESHOLD > dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) > MIN_THRESHOLD and MAX_THRESHOLD > dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3)> MIN_THRESHOLD:
-                        motion_commander.start_linear_motion(0, -0.2, 0)
-                        time.sleep(0.01)
-                    elif MAX_THRESHOLD > dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) > MIN_THRESHOLD and dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3) < MIN_THRESHOLD:
-                        motion_commander.start_turn_left(10)
-                        time.sleep(0.01)
-                    elif MAX_THRESHOLD > dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) > MIN_THRESHOLD and dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3) > MAX_THRESHOLD:
-                        motion_commander.start_turn_right(10)
-                        time.sleep(0.01)
-                    elif dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) < MIN_THRESHOLD and MAX_THRESHOLD > dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3) > MIN_THRESHOLD:
-                        motion_commander.start_turn_right(10)
-                        time.sleep(0.01)
-                    elif dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) > MAX_THRESHOLD and MAX_THRESHOLD > dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3)> MIN_THRESHOLD:
-                        motion_commander.start_turn_left(10)
-                        time.sleep(0.01)
-                    elif dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) > MAX_THRESHOLD and dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3) > MAX_THRESHOLD :
-                        motion_commander.start_linear_motion(-0.2, 0, 0)
-                        time.sleep(0.01)
-                    else :
-                        motion_commander.start_linear_motion(0.2, 0, 0)
-                        time.sleep(0.01)
+                try:
+                    while keep_flying:
+                        timestamps.append(time.time())
+                        Distance1 = dis_net1(WHISKER.whisker1_1,WHISKER.whisker1_2,WHISKER.whisker1_3) 
+                        Distance2 = dis_net2(WHISKER.whisker2_1,WHISKER.whisker2_2,WHISKER.whisker2_3)
+                        Distances1.append(Distance1)
+                        Distances2.append(Distance2)
+                        if MAX_THRESHOLD > Distance1 > MIN_THRESHOLD and MAX_THRESHOLD > Distance2 > MIN_THRESHOLD:
+                            motion_commander.start_linear_motion(0, -0.2, 0)
+                            time.sleep(0.01)
+                        elif MAX_THRESHOLD > Distance1 > MIN_THRESHOLD and Distance2 < MIN_THRESHOLD:
+                            motion_commander.start_turn_left(10)
+                            time.sleep(0.01)
+                        elif MAX_THRESHOLD > Distance1 > MIN_THRESHOLD and Distance2 > MAX_THRESHOLD:
+                            motion_commander.start_turn_right(10)
+                            time.sleep(0.01)
+                        elif Distance1 < MIN_THRESHOLD and MAX_THRESHOLD > Distance2 > MIN_THRESHOLD:
+                            motion_commander.start_turn_right(10)
+                            time.sleep(0.01)
+                        elif Distance1 > MAX_THRESHOLD and MAX_THRESHOLD > Distance2 > MIN_THRESHOLD:
+                            motion_commander.start_turn_left(10)
+                            time.sleep(0.01)
+                        elif Distance1 > MAX_THRESHOLD and Distance2 > MAX_THRESHOLD :
+                            motion_commander.start_linear_motion(-0.2, 0, 0)
+                            time.sleep(0.01)
+                        else :
+                            motion_commander.start_linear_motion(0.2, 0, 0)
+                            time.sleep(0.01)
+                except KeyboardInterrupt:
+                    with open(file_name, 'w') as file:
+                        # 写入表头
+                        file.write("timestamp,whisker1_1,whisker2_2\n")
+                        # 写入数据
+                        for timestamp, Distance1_value, Distance2_value in zip(timestamps, Distance1, Distance2):
+                            file.write(f"{timestamp},{Distance1_value},{Distance2_value}\n")
 
-            print('Demo terminated!')
+                    print(f"数据已保存到文件: {file_name}")
+
+                print('Demo terminated!')
 
 # python3 whisker_hovering_collect_data.py --fileroot data/20240422 --logconfig logcfg.json

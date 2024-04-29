@@ -154,7 +154,11 @@ MIN_THRESHOLD1 = 15
 MAX_THRESHOLD1 = 80
 
 MIN_THRESHOLD2 = 30
-MAX_THRESHOLD2 = 180
+MAX_THRESHOLD2 = 150
+whisker1_1_data = []
+whisker2_2_data = []
+timestamps = []
+file_name = "whisker_data.csv"
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -172,29 +176,43 @@ if __name__ == '__main__':
             with whisker.Whisker(scf) as WHISKER:
                 filelogger=setup_logger()
                 keep_flying = True
-                while keep_flying:
-                    if MAX_THRESHOLD1 > is_touch(WHISKER.whisker1_1) > MIN_THRESHOLD1 and MAX_THRESHOLD2 > is_touch(WHISKER.whisker2_2)> MIN_THRESHOLD2:
-                        motion_commander.start_linear_motion(0, -0.2, 0)
-                        time.sleep(0.01)
-                    elif MAX_THRESHOLD1 > is_touch(WHISKER.whisker1_1) > MIN_THRESHOLD1 and is_touch(WHISKER.whisker2_2) < MIN_THRESHOLD2:
-                        motion_commander.start_turn_left(10)
-                        time.sleep(0.01)
-                    elif MAX_THRESHOLD1 > is_touch(WHISKER.whisker1_1) > MIN_THRESHOLD1 and is_touch(WHISKER.whisker2_2) > MAX_THRESHOLD2:
-                        motion_commander.start_turn_right(10)
-                        time.sleep(0.01)
-                    elif is_touch(WHISKER.whisker1_1) < MIN_THRESHOLD1 and MAX_THRESHOLD2 > is_touch(WHISKER.whisker2_2) > MIN_THRESHOLD2:
-                        motion_commander.start_turn_right(10)
-                        time.sleep(0.01)
-                    elif is_touch(WHISKER.whisker1_1) > MAX_THRESHOLD1 and MAX_THRESHOLD2 > is_touch(WHISKER.whisker2_2)> MIN_THRESHOLD2:
-                        motion_commander.start_turn_left(10)
-                        time.sleep(0.01)
-                    elif is_touch(WHISKER.whisker1_1) > MAX_THRESHOLD1 and is_touch(WHISKER.whisker2_2) > MAX_THRESHOLD2 :
-                        motion_commander.start_linear_motion(-0.2, 0, 0)
-                        time.sleep(0.01)
-                    else :
-                        motion_commander.start_linear_motion(0.2, 0, 0)
-                        time.sleep(0.01)
+                try:
 
-            print('Demo terminated!')
+                    while keep_flying:
+                        timestamps.append(time.time())
+                        whisker1_1_data.append(is_touch(WHISKER.whisker1_1))
+                        whisker2_2_data.append(is_touch(WHISKER.whisker2_2))
+                        if MAX_THRESHOLD1 > is_touch(WHISKER.whisker1_1) > MIN_THRESHOLD1 and MAX_THRESHOLD2 > is_touch(WHISKER.whisker2_2)> MIN_THRESHOLD2:
+                            motion_commander.start_linear_motion(0, -0.2, 0)
+                            time.sleep(0.01)
+                        elif MAX_THRESHOLD1 > is_touch(WHISKER.whisker1_1) > MIN_THRESHOLD1 and is_touch(WHISKER.whisker2_2) < MIN_THRESHOLD2:
+                            motion_commander.start_turn_left(10)
+                            time.sleep(0.01)
+                        elif MAX_THRESHOLD1 > is_touch(WHISKER.whisker1_1) > MIN_THRESHOLD1 and is_touch(WHISKER.whisker2_2) > MAX_THRESHOLD2:
+                            motion_commander.start_turn_right(10)
+                            time.sleep(0.01)
+                        elif is_touch(WHISKER.whisker1_1) < MIN_THRESHOLD1 and MAX_THRESHOLD2 > is_touch(WHISKER.whisker2_2) > MIN_THRESHOLD2:
+                            motion_commander.start_turn_right(10)
+                            time.sleep(0.01)
+                        elif is_touch(WHISKER.whisker1_1) > MAX_THRESHOLD1 and MAX_THRESHOLD2 > is_touch(WHISKER.whisker2_2)> MIN_THRESHOLD2:
+                            motion_commander.start_turn_left(10)
+                            time.sleep(0.01)
+                        elif is_touch(WHISKER.whisker1_1) > MAX_THRESHOLD1 and is_touch(WHISKER.whisker2_2) > MAX_THRESHOLD2 :
+                            motion_commander.start_linear_motion(-0.2, 0, 0)
+                            time.sleep(0.01)
+                        else :
+                            motion_commander.start_linear_motion(0.2, 0, 0)
+                            time.sleep(0.01)
+                except KeyboardInterrupt:
+                    with open(file_name, 'w') as file:
+                        # 写入表头
+                        file.write("timestamp,whisker1_1,whisker2_2\n")
+                        # 写入数据
+                        for timestamp, whisker1_1_value, whisker2_2_value in zip(timestamps, whisker1_1_data, whisker2_2_data):
+                            file.write(f"{timestamp},{whisker1_1_value},{whisker2_2_value}\n")
+
+                    print(f"数据已保存到文件: {file_name}")
+
+                print('Demo terminated!')
 
 # python3 whisker_hovering_collect_data.py --fileroot data/20240422 --logconfig logcfg.json

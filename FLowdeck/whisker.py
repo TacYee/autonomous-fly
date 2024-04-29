@@ -95,7 +95,7 @@ class Whisker:
 
     def _data_received(self, timestamp, data, logconf):
         if self._slope_1_1 is None:
-            self._initialize_linear_model(data[self.WHISKER1_1], data[self.WHISKER1_2], data[self.WHISKER1_3], data[self.WHISKER2_1], data[self.WHISKER2_2, data[self.WHISKER2_3]])
+            self._initialize_linear_model(data[self.WHISKER1_1], data[self.WHISKER1_2], data[self.WHISKER1_3], data[self.WHISKER2_1], data[self.WHISKER2_2], data[self.WHISKER2_3])
         else:
             self._process_data_point(data[self.WHISKER1_1], data[self.WHISKER1_2], data[self.WHISKER1_3], data[self.WHISKER2_1], data[self.WHISKER2_2], data[self.WHISKER2_3])
 
