@@ -25,14 +25,30 @@ class Whisker:
         self._whisker2_2 = None
         self._whisker2_3 = None
         self._b, self._a = self._calculate_filter_coefficients()
-        self._zi1 = None
-        self._zi2 = None
+        self._zi1_1 = None
+        self._zi1_2 = None
+        self._zi1_3 = None
+        self._zi2_1 = None
+        self._zi2_2 = None
+        self._zi2_3 = None
         self._first_100_data_1_1 = []
-        self._first_100_data_2_2 = [] 
-        self._slope_1 = None  # save slope
-        self._intercept_1 = None  # save intercept
-        self._slope_2 = None
-        self._intercept_2 = None
+        self._first_100_data_1_2 = []
+        self._first_100_data_1_3 = []
+        self._first_100_data_2_1 = []
+        self._first_100_data_2_2 = []
+        self._first_100_data_2_3 = [] 
+        self._slope_1_1 = None  # save slope
+        self._intercept_1_1 = None  # save intercept
+        self._slope_1_2 = None
+        self._intercept_1_2 = None
+        self._slope_1_3 = None
+        self._intercept_1_3 = None
+        self._slope_2_1 = None
+        self._intercept_2_1 = None
+        self._slope_2_2 = None
+        self._intercept_2_2 = None
+        self._slope_2_3 = None
+        self._intercept_2_3 = None
         self._time_stamp = 0
 
     
@@ -78,25 +94,42 @@ class Whisker:
         return filtered_data_point, zi
 
     def _data_received(self, timestamp, data, logconf):
-        if self._slope_1 is None:
-            self._initialize_linear_model(data[self.WHISKER1_1], data[self.WHISKER2_2])
+        if self._slope_1_1 is None:
+            self._initialize_linear_model(data[self.WHISKER1_1], data[self.WHISKER1_2], data[self.WHISKER1_3], data[self.WHISKER2_1], data[self.WHISKER2_2, data[self.WHISKER2_3]])
         else:
-            self._process_data_point(data[self.WHISKER1_1], data[self.WHISKER2_2])
+            self._process_data_point(data[self.WHISKER1_1], data[self.WHISKER1_2], data[self.WHISKER1_3], data[self.WHISKER2_1], data[self.WHISKER2_2], data[self.WHISKER2_3])
 
-    def _initialize_linear_model(self, data_point_1, data_point_2):
-        self._first_100_data_1_1.append(data_point_1)
-        self._first_100_data_2_2.append(data_point_2)
+    def _initialize_linear_model(self, data_point_1_1, data_point_1_2, data_point_1_3, data_point_2_1, data_point_2_2, data_point_2_3):
+        self._first_100_data_1_1.append(data_point_1_1)
+        self._first_100_data_1_2.append(data_point_1_2)
+        self._first_100_data_1_3.append(data_point_1_3)
+        self._first_100_data_2_1.append(data_point_2_1)
+        self._first_100_data_2_2.append(data_point_2_2)
+        self._first_100_data_2_3.append(data_point_2_3)
         self._time_stamp += 1
 
         if self._time_stamp == 100:
-            self._slope_1, self._intercept_1 = self._linear_fit(self._first_100_data_1_1)
-            self._slope_2, self._intercept_2 = self._linear_fit(self._first_100_data_2_2)
+            self._slope_1_1, self._intercept_1_1 = self._linear_fit(self._first_100_data_1_1)
+            self._slope_1_2, self._intercept_1_2 = self._linear_fit(self._first_100_data_1_2)
+            self._slope_1_3, self._intercept_1_3 = self._linear_fit(self._first_100_data_1_3)
+            self._slope_2_1, self._intercept_2_1 = self._linear_fit(self._first_100_data_2_1)
+            self._slope_2_2, self._intercept_2_2 = self._linear_fit(self._first_100_data_2_2)
+            self._slope_2_3, self._intercept_2_3 = self._linear_fit(self._first_100_data_2_3)
 
-    def _process_data_point(self, data_point_1, data_point_2):
-        residuals_1 = data_point_1 - (self._slope_1 * self._time_stamp + self._intercept_1)
-        residuals_2 = data_point_2 - (self._slope_2 * self._time_stamp + self._intercept_2)
-        self._whisker1_1, self._zi1 = self._apply_bandpass_filter_realtime(residuals_1, self._zi1)
-        self._whisker2_2, self._zi2 = self._apply_bandpass_filter_realtime(residuals_2, self._zi2)
+    def _process_data_point(self, data_point_1_1, data_point_1_2, data_point_1_3, data_point_2_1, data_point_2_2, data_point_2_3):
+        residuals_1_1 = data_point_1_1 - (self._slope_1_1 * self._time_stamp + self._intercept_1_1)
+        residuals_1_2 = data_point_1_2 - (self._slope_1_2 * self._time_stamp + self._intercept_1_2)
+        residuals_1_3 = data_point_1_3 - (self._slope_1_3 * self._time_stamp + self._intercept_1_3)
+        residuals_2_1 = data_point_2_1 - (self._slope_2_1 * self._time_stamp + self._intercept_2_1)
+        residuals_2_2 = data_point_2_2 - (self._slope_2_2 * self._time_stamp + self._intercept_2_2)
+        residuals_2_3 = data_point_2_3 - (self._slope_2_3 * self._time_stamp + self._intercept_2_3)
+        self._whisker1_1, self._zi1_1 = self._apply_bandpass_filter_realtime(residuals_1_1, self._zi1_1)
+        self._whisker1_2, self._zi1_2 = self._apply_bandpass_filter_realtime(residuals_1_2, self._zi1_2)
+        self._whisker1_3, self._zi1_3 = self._apply_bandpass_filter_realtime(residuals_1_3, self._zi1_3)
+        self._whisker2_1, self._zi2_1 = self._apply_bandpass_filter_realtime(residuals_2_1, self._zi2_1)
+        self._whisker2_2, self._zi2_2 = self._apply_bandpass_filter_realtime(residuals_2_2, self._zi2_2)
+        self._whisker2_3, self._zi2_3 = self._apply_bandpass_filter_realtime(residuals_2_3, self._zi2_3)
+
         self._time_stamp += 1
 
 
