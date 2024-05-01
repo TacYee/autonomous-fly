@@ -243,12 +243,12 @@ if __name__ == '__main__':
                 except KeyboardInterrupt:
                     with open(file_name, 'w') as file:
                         # 写入表头
-                        file.write("timestamp,Distance1,Distance2\n")
+                        file.write("timestamp, Distance1, Distance2\n")
                         # 写入数据
                         for timestamp, Distance1_value, Distance2_value in zip(timestamps, Distances1, Distances2):
                             file.write(f"{timestamp},{Distance1_value},{Distance2_value}\n")
 
-                    print(f"数据已保存到文件: {file_name}")
+                    print(f"file saved!: {file_name}")
 
                 print('Demo terminated!')
 

@@ -211,7 +211,7 @@ if __name__ == '__main__':
                         for timestamp, whisker1_1_value, whisker2_2_value in zip(timestamps, whisker1_1_data, whisker2_2_data):
                             file.write(f"{timestamp},{whisker1_1_value},{whisker2_2_value}\n")
 
-                    print(f"数据已保存到文件: {file_name}")
+                    print(f"file saved!: {file_name}")
 
                 print('Demo terminated!')
 
