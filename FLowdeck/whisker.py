@@ -91,7 +91,7 @@ class Whisker:
         
         # Apply 1st-order bandpass filter
         filtered_data_point, zi = signal.lfilter(self._b, self._a, [residuals], zi=zi)
-        return filtered_data_point, zi
+        return filtered_data_point[0], zi
 
     def _data_received(self, timestamp, data, logconf):
         if self._slope_1_1 is None:

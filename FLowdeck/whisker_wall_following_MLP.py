@@ -13,9 +13,8 @@ from cflib.positioning.motion_commander import MotionCommander
 import whisker
 from FileLogger import FileLogger
 from cflib.utils import uri_helper
+import numpy as np
 
-import torch
-from model import *
 
 URI = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7EF')
 
@@ -114,24 +113,61 @@ def setup_logger():
     # # Estimator
     # if args["estimator"] == "kalman":
     #     flogger.enableConfig("kalman")
+with open('mlp_bs_32_lr_0.001_reg_0.001_do_0.1_rmse_9.0575_whisker1.txt', 'r') as f:
+    lines = f.readlines()
+    W1_1 = np.array([list(map(float, line.split())) for line in lines[1:33]])
+    b1_1 = np.array([list(map(float, line.split())) for line in lines[35:67]]).flatten()
+    W2_1 = np.array([list(map(float, line.split())) for line in lines[69:101]])
+    b2_1 = np.array([list(map(float, line.split())) for line in lines[103:135]]).flatten()
+    W3_1 = np.array([list(map(float, line.split())) for line in lines[137:169]])
+    b3_1 = np.array([list(map(float, line.split())) for line in lines[171:203]]).flatten()
+    W4_1 = np.array(list(map(float, lines[205].split())))
+    b4_1 = np.array(list(map(float, lines[-1].split()))).flatten()
+with open('mlp_bs_32_lr_0.001_reg_0.01_do_0.1_rmse_9.3832_whisker2.txt', 'r') as f:
+    lines = f.readlines()
+    W1_2 = np.array([list(map(float, line.split())) for line in lines[1:33]])
+    b1_2 = np.array([list(map(float, line.split())) for line in lines[35:67]]).flatten()
+    W2_2 = np.array([list(map(float, line.split())) for line in lines[69:101]])
+    b2_2 = np.array([list(map(float, line.split())) for line in lines[103:135]]).flatten()
+    W3_2 = np.array([list(map(float, line.split())) for line in lines[137:169]])
+    b3_2 = np.array([list(map(float, line.split())) for line in lines[171:203]]).flatten()
+    W4_2 = np.array(list(map(float, lines[205].split())))
+    b4_2 = np.array(list(map(float, lines[-1].split()))).flatten()
 
-model1 = MLP(3, 32, 1, 0.1)
-model2 = MLP(3, 32, 1, 0.1)
-best_model1_path='mlp_bs_32_lr_0.001_reg_0.001_do_0.1_rmse_9.0575_whisker1.pt'
-best_model2_path='mlp_bs_32_lr_0.001_reg_0.01_do_0.1_rmse_9.3832_whisker2.pt'
-model1.load_state_dict(torch.load(best_model1_path))
-model2.load_state_dict(torch.load(best_model2_path))
-model1.eval()
-model2.eval()
+def normalization(data, mean, std):
+    normalized_data = (data - mean) / std
+    return normalized_data
+
+def relu(x):
+    return np.maximum(0, x)
+
+def mlp_inference(input_data, W1, b1, W2, b2, W3, b3, W4, b4):
+    # 第一层前向传播
+    z1 = np.dot(input_data, W1.T) + b1
+    a1 = relu(z1)
+    
+    # 第二层前向传播
+    z2 = np.dot(a1, W2.T) + b2
+    a2 = relu(z2)
+    
+    # 第三层前向传播
+    z3 = np.dot(a2, W3.T) + b3
+    a3 = relu(z3)
+    
+    # 输出层前向传播
+    output = np.dot(a3, W4.T) + b4
+    
+    return output
+
 
 def dis_net1(whisker1, whisker2, whisker3):
 
     if whisker1 is None or whisker1 < 15:
         return 0
     else:
-        input_data = torch.tensor([[whisker1, whisker2, whisker3]], dtype=torch.float32)
-        with torch.no_grad():
-            output = model1(input_data)
+        input_data = np.array([whisker1, whisker2, whisker3])
+        normalized_data = normalization(input_data, mean_1, std_1)
+        output = mlp_inference(normalized_data, W1_1, b1_1, W2_1, b2_1, W3_1, b3_1, W4_1, b4_1)
     
         return output
     
@@ -140,15 +176,21 @@ def dis_net2(whisker1, whisker2, whisker3):
     if whisker2 is None or whisker2 < 15:
         return 0
     else:
-        input_data = torch.tensor([[whisker1, whisker2, whisker3]], dtype=torch.float32)
-        with torch.no_grad():
-            output = model2(input_data)
+        input_data = np.array([whisker1, whisker2, whisker3])
+        normalized_data = normalization(input_data, mean_2, std_2)
+        output = mlp_inference(normalized_data , W1_2, b1_2, W2_2, b2_2, W3_2, b3_2, W4_2, b4_2)
     
         return output
 
 
 MIN_THRESHOLD = 30
-MAX_THRESHOLD = 50
+MAX_THRESHOLD = 80
+
+mean_1 = [ 54.20560548, -21.00775578, -14.01101664]
+std_1 = [18.14239061,  8.27251843, 11.67656998]
+mean_2 = [-1.64046324, 245.01769527, -85.01116184]
+std_2 = [12.35055776, 101.31582844, 49.42377167]
+
 Distances1 = []
 Distances2 = []
 timestamps = []
@@ -181,16 +223,16 @@ if __name__ == '__main__':
                             motion_commander.start_linear_motion(0, -0.2, 0)
                             time.sleep(0.01)
                         elif MAX_THRESHOLD > Distance1 > MIN_THRESHOLD and Distance2 < MIN_THRESHOLD:
-                            motion_commander.start_turn_left(10)
+                            motion_commander.start_turn_left(20)
                             time.sleep(0.01)
                         elif MAX_THRESHOLD > Distance1 > MIN_THRESHOLD and Distance2 > MAX_THRESHOLD:
-                            motion_commander.start_turn_right(10)
+                            motion_commander.start_turn_right(20)
                             time.sleep(0.01)
                         elif Distance1 < MIN_THRESHOLD and MAX_THRESHOLD > Distance2 > MIN_THRESHOLD:
-                            motion_commander.start_turn_right(10)
+                            motion_commander.start_turn_right(20)
                             time.sleep(0.01)
                         elif Distance1 > MAX_THRESHOLD and MAX_THRESHOLD > Distance2 > MIN_THRESHOLD:
-                            motion_commander.start_turn_left(10)
+                            motion_commander.start_turn_left(20)
                             time.sleep(0.01)
                         elif Distance1 > MAX_THRESHOLD and Distance2 > MAX_THRESHOLD :
                             motion_commander.start_linear_motion(-0.2, 0, 0)
@@ -201,9 +243,9 @@ if __name__ == '__main__':
                 except KeyboardInterrupt:
                     with open(file_name, 'w') as file:
                         # 写入表头
-                        file.write("timestamp,whisker1_1,whisker2_2\n")
+                        file.write("timestamp,Distance1,Distance2\n")
                         # 写入数据
-                        for timestamp, Distance1_value, Distance2_value in zip(timestamps, Distance1, Distance2):
+                        for timestamp, Distance1_value, Distance2_value in zip(timestamps, Distances1, Distances2):
                             file.write(f"{timestamp},{Distance1_value},{Distance2_value}\n")
 
                     print(f"数据已保存到文件: {file_name}")
