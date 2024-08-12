@@ -1,5 +1,9 @@
 import torch
 import torch.nn as nn
+import adf
+
+def keep_variance(x, min_variance):
+    return x + min_variance
 
 class ThreeLayerLSTM(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, output_size, dropout):
@@ -42,6 +46,31 @@ class MLP(nn.Module):
         x = self.relu(self.fc3(x))
         x = self.dropout(x)
         x = self.fc4(x)
+        return x
+    
+class MLP_adf_dropout(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size, p=0.2, noise_variance=1e-3, min_variance=1e-3):
+        super(MLP, self).__init__()
+        self.keep_variance_fn = lambda x: keep_variance(x, min_variance=min_variance)
+        self._noise_variance = noise_variance
+        self.fc1 = adf.Linear(input_size, hidden_size)
+        self.fc2 = adf.Linear(hidden_size, hidden_size)
+        self.fc3 = adf.Linear(hidden_size, hidden_size)
+        self.fc4 = adf.Linear(hidden_size, output_size)
+        self.relu = adf.ReLU(keep_variance_fn=self.keep_variance_fn)
+        self.dropout = adf.Dropout(p=p, keep_variance_fn=self.keep_variance_fn)
+
+    def forward(self, x):
+        inputs_mean = x
+        inputs_variance = torch.zeros_like(inputs_mean) + self._noise_variance
+        x = inputs_mean, inputs_variance
+        x = self.relu(*self.fc1(*x))
+        x = self.dropout(*x)
+        x = self.relu(*self.fc2(*x))
+        x = self.dropout(*x)
+        x = self.relu(*self.fc3(*x))
+        x = self.dropout(*x)
+        x = self.fc4(*x)
         return x
 
 # class ThreeLayerLSTM_FC(nn.Module):
