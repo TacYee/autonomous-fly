@@ -50,7 +50,7 @@ class ReLU(nn.Module):
 
 
 class Dropout(nn.Module):
-    """ADF implementation of nn.Dropout2d"""
+    """ADF implementation of nn.Dropout1d"""
     def __init__(self, p: float = 0.5, keep_variance_fn=None, inplace=False):
         super(Dropout, self).__init__()
         self._keep_variance_fn = keep_variance_fn
@@ -62,7 +62,7 @@ class Dropout(nn.Module):
     def forward(self, inputs_mean, inputs_variance):
         if self.training:
             binary_mask = torch.ones_like(inputs_mean)
-            binary_mask = F.dropout2d(binary_mask, self.p, self.training, self.inplace)
+            binary_mask = F.dropout(binary_mask, self.p, self.training, self.inplace)
 
             outputs_mean = inputs_mean*binary_mask
             outputs_variance = inputs_variance*binary_mask**2

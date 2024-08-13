@@ -50,7 +50,7 @@ class MLP(nn.Module):
     
 class MLP_adf_dropout(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, p=0.2, noise_variance=1e-3, min_variance=1e-3):
-        super(MLP, self).__init__()
+        super(MLP_adf_dropout, self).__init__()
         self.keep_variance_fn = lambda x: keep_variance(x, min_variance=min_variance)
         self._noise_variance = noise_variance
         self.fc1 = adf.Linear(input_size, hidden_size)

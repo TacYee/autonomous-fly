@@ -385,3 +385,4 @@ def min_max_normalization(data):
     max_val = np.max(data)
     normalized_data = (data - min_val) / (max_val - min_val)
     return normalized_data
+
