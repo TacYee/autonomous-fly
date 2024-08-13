@@ -153,13 +153,13 @@ def compute_log_likelihood(y_pred, y_true, sigma):
     log_likelihood = torch.mean(log_likelihood, dim=1)
     return log_likelihood
 
-def compute_brier_score(y_pred, y_true):
-    """Brier score implementation follows 
-    https://papers.nips.cc/paper/7219-simple-and-scalable-predictive-uncertainty-estimation-using-deep-ensembles.pdf.
-    The lower the Brier score is for a set of predictions, the better the predictions are calibrated."""        
+# def compute_brier_score(y_pred, y_true):
+#     """Brier score implementation follows 
+#     https://papers.nips.cc/paper/7219-simple-and-scalable-predictive-uncertainty-estimation-using-deep-ensembles.pdf.
+#     The lower the Brier score is for a set of predictions, the better the predictions are calibrated."""        
         
-    brier_score = torch.mean((y_true-y_pred)**2, 1)
-    return brier_score
+#     brier_score = torch.mean((y_true-y_pred)**2, 1)
+#     return brier_score
 
 def compute_preds(net, inputs, use_adf=False, use_mcdo=False):
     
@@ -179,13 +179,13 @@ def compute_preds(net, inputs, use_adf=False, use_mcdo=False):
         outputs = [net(inputs) for i in range(args.num_samples)]
         
         if use_adf:
-            outputs = [adf_softmax(*outs) for outs in outputs]
+            # outputs = [adf_softmax(*outs) for outs in outputs]
             outputs_mean = [mean for (mean, var) in outputs]
             data_variance = [var for (mean, var) in outputs]
             data_variance = torch.stack(data_variance)
             data_variance = torch.mean(data_variance, dim=0)
         else:
-            outputs_mean = [softmax(outs) for outs in outputs]
+            outputs_mean = outputs
             
         outputs_mean = torch.stack(outputs_mean)
         model_variance = torch.var(outputs_mean, dim=0)
@@ -194,7 +194,7 @@ def compute_preds(net, inputs, use_adf=False, use_mcdo=False):
     else:
         outputs = net(inputs)
         if adf:
-            outputs_mean, data_variance = adf_softmax(*outputs)
+            outputs_mean, data_variance = outputs
         else:
             outputs_mean = outputs
         
@@ -205,9 +205,8 @@ def compute_preds(net, inputs, use_adf=False, use_mcdo=False):
 
 def evaluate(net, use_adf=False, use_mcdo=False):
     net.eval()
-    test_loss = 0
-    correct = 0
-    brier_score = 0
+    MSE = 0
+    MAE = 0
     neg_log_likelihood = 0
     total = 0
     outputs_variance = None
@@ -225,37 +224,36 @@ def evaluate(net, use_adf=False, use_mcdo=False):
             elif model_variance is not None:
                 outputs_variance = model_variance + args.tau
             
-            one_hot_targets = one_hot_pred_from_label(outputs_mean, targets)
+            # one_hot_targets = one_hot_pred_from_label(outputs_mean, targets)
             
             # Compute negative log-likelihood (if variance estimate available)
             if outputs_variance is not None:
-                batch_log_likelihood = compute_log_likelihood(outputs_mean, one_hot_targets, torch.sqrt(outputs_variance))
+                batch_log_likelihood = compute_log_likelihood(outputs_mean, targets, torch.sqrt(outputs_variance))
                 batch_neg_log_likelihood = -batch_log_likelihood
                 # Sum along batch dimension
                 neg_log_likelihood += torch.sum(batch_neg_log_likelihood, 0).cpu().numpy().item()
             
             # Compute brier score
-            batch_brier_score = compute_brier_score(outputs_mean, one_hot_targets)
+            # batch_brier_score = compute_brier_score(outputs_mean, targets)
             # Sum along batch dimension
-            brier_score += torch.sum(batch_brier_score, 0).cpu().numpy().item()
+            # brier_score += torch.sum(batch_brier_score, 0).cpu().numpy().item()
             
             # Compute loss
-            loss = criterion(outputs_mean, targets)
-            test_loss += loss.item()
-            
-            # Compute predictions and numer of correct predictions
-            _, predicted = outputs_mean.max(1)
+            MSE = nn.MSELoss(outputs_mean, targets)
+            test_MSE += MSE.item()
+            MAE = nn.L1Loss(outputs_mean, targets)
+            test_MAE += MAE.item()
+
             total += targets.size(0)
-            correct += predicted.eq(targets).sum().item()
 
             if args.show_bar and args.verbose:
-                progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                    % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+                progress_bar(batch_idx, len(testloader), 'MSE: %.3f | MAE: %.3f'
+                    % (MSE/(batch_idx+1), MAE/(batch_idx+1)))
 
-    accuracy = 100.*correct/total
-    brier_score = brier_score/total
+    RMSE = torch.sqrt(MSE/total)
+    MAE_total = MAE/total
     neg_log_likelihood = neg_log_likelihood/total
-    return accuracy, brier_score, neg_log_likelihood
+    return RMSE, MAE_total, neg_log_likelihood
 
 
 # Testing adf model
@@ -275,15 +273,15 @@ print('==> Starting evaluation...')
 
 eval_time = time.time()
 
-accuracy, brier_score, neg_log_likelihood = evaluate(
+RMSE, MAE, neg_log_likelihood = evaluate(
         net,
         use_adf=args.test_model_name.lower().endswith('adf'), 
         use_mcdo=args.use_mcdo)
 
 eval_time = time.time() - eval_time
 
-print('Accuracy                = {}'.format(accuracy))
-print('Brier Score             = {}'.format(brier_score))
+print('Accuracy                = {}'.format(RMSE))
+print('Brier Score             = {}'.format(MAE))
 print('Negative log-likelihood = {}'.format(neg_log_likelihood))
 print('Time                    = {}'.format(eval_time))
     
