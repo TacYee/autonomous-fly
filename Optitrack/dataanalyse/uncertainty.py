@@ -9,6 +9,8 @@ import torchvision.transforms as transforms
 import argparse
 import os
 import time
+import matplotlib.pyplot as plt
+import numpy as np
 
 import adf
 from model import MLP_adf_dropout
@@ -127,6 +129,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 #     best_acc = checkpoint['acc']
 #     start_epoch = checkpoint['epoch']
+def normalization(data, mean, std):
+    normalized_data = (data - mean) / std
+    return normalized_data
 
 def set_training_mode_for_dropout(net, training=True):
     """Set Dropout mode to train or eval."""
@@ -154,6 +159,7 @@ def compute_log_likelihood(y_pred, y_true, sigma):
     log_likelihood = torch.mean(log_likelihood, dim=1)
     return log_likelihood
 
+
 # def compute_brier_score(y_pred, y_true):
 #     """Brier score implementation follows 
 #     https://papers.nips.cc/paper/7219-simple-and-scalable-predictive-uncertainty-estimation-using-deep-ensembles.pdf.
@@ -163,14 +169,15 @@ def compute_log_likelihood(y_pred, y_true, sigma):
 #     return brier_score
 
 def compute_preds(net, inputs, use_adf=False, use_mcdo=False):
-    
-    model_variance = None
+    mean = 45.58733941
+    std = 20.80633402
+    model_variance_nm = None
     data_variance = None
     
-    def keep_variance(x, min_variance):
-        return x + min_variance
+    # def keep_variance(x, min_variance):
+    #     return x + min_variance
 
-    keep_variance_fn = lambda x: keep_variance(x, min_variance=1e-3)
+    # keep_variance_fn = lambda x: keep_variance(x, min_variance=1e-3)
     # softmax = nn.Softmax(dim=1)
     # adf_softmax = adf.Softmax(dim=1, keep_variance_fn=keep_variance_fn)
     
@@ -182,14 +189,17 @@ def compute_preds(net, inputs, use_adf=False, use_mcdo=False):
         if use_adf:
             # outputs = [adf_softmax(*outs) for outs in outputs]
             outputs_mean = [mean for (mean, var) in outputs]
+            outputs_mean_nm =  [normalization(data, mean, std) for data in outputs_mean]
             data_variance = [var for (mean, var) in outputs]
             data_variance = torch.stack(data_variance)
             data_variance = torch.mean(data_variance, dim=0)
         else:
             outputs_mean = outputs
+            outputs_mean_nm =  [normalization(data, mean, std) for data in outputs_mean]
             
         outputs_mean = torch.stack(outputs_mean)
-        model_variance = torch.var(outputs_mean, dim=0)
+        outputs_mean_nm = torch.stack(outputs_mean_nm)
+        model_variance_nm = torch.var(outputs_mean_nm, dim=0)
         # Compute MCDO prediction
         outputs_mean = torch.mean(outputs_mean, dim=0)
     else:
@@ -201,36 +211,50 @@ def compute_preds(net, inputs, use_adf=False, use_mcdo=False):
         
     net = set_training_mode_for_dropout(net, False)
     
-    return outputs_mean, data_variance, model_variance
+    return outputs_mean, outputs_mean_nm, data_variance, model_variance_nm
 
 
-def evaluate(net, test_dataset, use_adf=False, use_mcdo=False):
+def evaluate(net, test_dataset, output_file, use_adf=False, use_mcdo=False):
     net.eval()
+    mean = 45.58733941
+    std = 20.80633402
     test_MSE = 0
     test_MAE = 0
     neg_log_likelihood = 0
     total = 0
     outputs_variance = None
+    all_outputs = None
+    all_labels = None
+    all_variances = None
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=False)
     
     with torch.no_grad():
         for inputs, targets in test_loader:
             
             inputs, targets = inputs.to(device), targets.to(device)
-            
-            outputs_mean, data_variance, model_variance = compute_preds(net, inputs, use_adf, use_mcdo)
-            if data_variance is not None and model_variance is not None:
-                outputs_variance = data_variance + model_variance
+            targets_nm = normalization(targets.unsqueeze(1), mean, std)
+            outputs_mean, outputs_mean_mn, data_variance, model_variance_nm = compute_preds(net, inputs, use_adf, use_mcdo)
+            if data_variance is not None and model_variance_nm is not None:
+                outputs_variance = data_variance + model_variance_nm*10
             elif data_variance is not None:
                 outputs_variance = data_variance
-            elif model_variance is not None:
-                outputs_variance = model_variance + 1e-4
+            elif model_variance_nm is not None:
+                outputs_variance = model_variance_nm*10 + 1e-4
+            
+            if all_outputs == None:
+                all_outputs = outputs_mean
+                all_labels = targets
+                all_variances = outputs_variance 
+            else:
+                all_outputs = torch.cat((all_outputs, outputs_mean), dim=0)
+                all_labels = torch.cat((all_labels, targets), dim=0)
+                all_variances = torch.cat((all_variances, outputs_variance), dim=0)
             
             # one_hot_targets = one_hot_pred_from_label(outputs_mean, targets)
             
             # Compute negative log-likelihood (if variance estimate available)
             if outputs_variance is not None:
-                batch_log_likelihood = compute_log_likelihood(outputs_mean, targets.unsqueeze(1), torch.sqrt(outputs_variance))
+                batch_log_likelihood = compute_log_likelihood(outputs_mean_mn, targets_nm, torch.sqrt(outputs_variance))
                 batch_neg_log_likelihood = -batch_log_likelihood
                 # Sum along batch dimension
                 neg_log_likelihood += torch.sum(batch_neg_log_likelihood, 0).cpu().numpy().item()
@@ -246,11 +270,22 @@ def evaluate(net, test_dataset, use_adf=False, use_mcdo=False):
             MAE_loss = nn.L1Loss()(outputs_mean, targets.unsqueeze(1))
             test_MAE += MAE_loss.item()
             print(outputs_mean, targets)
-            print(outputs_variance)
+            print(outputs_variance, data_variance, model_variance_nm*10)
 
             # if args.show_bar and args.verbose:
             #     progress_bar(batch_idx, len(testloader), 'MSE: %.3f | MAE: %.3f'
             #         % (MSE/(batch_idx+1), MAE/(batch_idx+1)))
+    plt.figure(figsize=(10, 6))
+    plt.plot(all_outputs.cpu().numpy(), label='Whisker')
+    plt.plot(all_labels.cpu().numpy(), label='Ground Truth')
+    plt.fill_between(np.arange(len(all_variances.cpu().numpy())), 
+                     all_outputs.cpu().numpy().flatten() - np.sqrt(all_variances.cpu().numpy()).flatten()*5, 
+                     all_outputs.cpu().numpy().flatten() + np.sqrt(all_variances.cpu().numpy()).flatten()*5, 
+                     color='gray', alpha=0.3, label='Uncertainty')
+    plt.legend()
+    plt.xlabel('Sample Index')
+    plt.ylabel('Output')
+    plt.savefig(f"{output_file}")
     MSE = test_MSE/len(test_loader)
     MAE = test_MAE/len(test_loader)
     neg_log_likelihood = neg_log_likelihood/len(test_loader)
