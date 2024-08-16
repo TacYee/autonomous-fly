@@ -289,7 +289,23 @@ def evaluate(net, test_dataset, output_file, use_adf=False, use_mcdo=False):
     MSE = test_MSE/len(test_loader)
     MAE = test_MAE/len(test_loader)
     neg_log_likelihood = neg_log_likelihood/len(test_loader)
-    return MSE, MAE, neg_log_likelihood
+    return MSE, MAE, neg_log_likelihood, all_outputs.cpu().numpy().flatten(), all_variances.cpu().numpy().flatten()
+
+def predict(net, test_dataset, use_adf=False, use_mcdo=False):
+    net.eval()
+    all_outputs= []
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=False)
+    
+    with torch.no_grad():
+        for inputs, targets in test_loader:
+            
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs_mean, outputs_mean_mn, data_variance, model_variance_nm = compute_preds(net, inputs, use_adf, use_mcdo)
+            if all_outputs == None:
+                all_outputs = outputs_mean
+            else:
+                all_outputs = torch.cat((all_outputs, outputs_mean), dim=0)
+    return all_outputs.cpu().numpy().flatten()
 
 
 # # Testing adf model
