@@ -235,11 +235,11 @@ def evaluate(net, test_dataset, output_file, use_adf=False, use_mcdo=False):
             targets_nm = normalization(targets.unsqueeze(1), mean, std)
             outputs_mean, outputs_mean_mn, data_variance, model_variance_nm = compute_preds(net, inputs, use_adf, use_mcdo)
             if data_variance is not None and model_variance_nm is not None:
-                outputs_variance = data_variance + model_variance_nm*10
+                outputs_variance = data_variance + model_variance_nm*40
             elif data_variance is not None:
                 outputs_variance = data_variance
             elif model_variance_nm is not None:
-                outputs_variance = model_variance_nm*10 + 1e-4
+                outputs_variance = model_variance_nm*40 + 1e-4
             
             if all_outputs == None:
                 all_outputs = outputs_mean
@@ -270,7 +270,7 @@ def evaluate(net, test_dataset, output_file, use_adf=False, use_mcdo=False):
             MAE_loss = nn.L1Loss()(outputs_mean, targets.unsqueeze(1))
             test_MAE += MAE_loss.item()
             print(outputs_mean, targets)
-            print(outputs_variance, data_variance, model_variance_nm*10)
+            print(outputs_variance, data_variance, model_variance_nm*40)
 
             # if args.show_bar and args.verbose:
             #     progress_bar(batch_idx, len(testloader), 'MSE: %.3f | MAE: %.3f'
@@ -279,8 +279,8 @@ def evaluate(net, test_dataset, output_file, use_adf=False, use_mcdo=False):
     plt.plot(all_outputs.cpu().numpy(), label='Whisker')
     plt.plot(all_labels.cpu().numpy(), label='Ground Truth')
     plt.fill_between(np.arange(len(all_variances.cpu().numpy())), 
-                     all_outputs.cpu().numpy().flatten() - np.sqrt(all_variances.cpu().numpy()).flatten()*5, 
-                     all_outputs.cpu().numpy().flatten() + np.sqrt(all_variances.cpu().numpy()).flatten()*5, 
+                     all_outputs.cpu().numpy().flatten() - np.sqrt(all_variances.cpu().numpy()).flatten()*3, 
+                     all_outputs.cpu().numpy().flatten() + np.sqrt(all_variances.cpu().numpy()).flatten()*3, 
                      color='gray', alpha=0.3, label='Uncertainty')
     plt.legend()
     plt.xlabel('Sample Index')
