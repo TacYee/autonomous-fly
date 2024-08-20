@@ -342,7 +342,6 @@ class KalmanFilterFLAT3:
         """
         self.x_pre1 = 234 - initial_state1  # 状态估计
         self.x_pre2 = 234 - initial_state2  # 状态估计
-        self.x_pre = (self.x_pre1 + self.x_pre2)/2
         self.p_x_last = -(initial_position[1] * 1000)
         self.p_y_last = initial_position[0] * 1000
         self.Θ_last = initial_yaw
@@ -357,8 +356,13 @@ class KalmanFilterFLAT3:
         """
         #无人机与墙壁法线夹角的预测值弧度
         self.relative_rad = np.arctan((self.x_pre1 - self.x_pre2) / 50)
+
+        self.x_pre = self.x_pre2 + 25 * np.tan(self.relative_rad+ np.deg2rad(yaw - self.Θ_last))
         #墙壁在world frame下的角度预测值弧度
         self.wall_rad = self.relative_rad - np.deg2rad(self.Θ_last)
+        self.wall_rad = self.wall_rad % (2 * np.pi)
+        if self.wall_rad > np.pi:
+            self.wall_rad = 2 * np.pi - self.wall_rad
         p_x = -(position[1] * 1000)
         p_y = position[0] * 1000
         #无人机移动的position的相对距离
@@ -375,9 +379,11 @@ class KalmanFilterFLAT3:
         self.P_minus2 = self.P2 + self.Q2
         self.p_x_last = p_x
         self.p_y_last = p_y
-        print(self.relative_rad)
+        self.Θ_last = yaw
+        print(f"relative_rad = {self.relative_rad}")
+        print(f"wall_rad = {self.wall_rad}")
 
-    def update(self, z1, z2, yaw):
+    def update(self, z1, z2):
         """
         测量更新步骤：根据新的测量值更新状态估计和协方差矩阵。
         
@@ -390,13 +396,11 @@ class KalmanFilterFLAT3:
         # 更新状态估计：x_hat_k = x_hat_k^- + K_k * (z_k - x_hat_k^-)
         self.x_pre1 = self.x_pre_minus1 + self.K1 @ (z1 - self.x_pre_minus1)
         self.x_pre2 = self.x_pre_minus2 + self.K2 @ (z2 - self.x_pre_minus2)
-        self.x_pre = (self.x_pre1 - 25 * np.tan(self.relative_rad + np.deg2rad(yaw - self.Θ_last)) + self.x_pre2 + 25 * np.tan(self.relative_rad+ np.deg2rad(yaw - self.Θ_last)))/2
         
         # 更新协方差矩阵：P_k = (I - K_k) * P_k^-
         I = np.eye(self.P1.shape[0])  # 单位矩阵
         self.P1 = (I - self.K1) @ self.P_minus1
         self.P2 = (I - self.K2) @ self.P_minus2
-        self.Θ_last = yaw
 
     def get_current_estimate(self):
         """
