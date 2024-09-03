@@ -18,8 +18,16 @@ if len(sys.argv) > 1:
 logging.basicConfig(level=logging.ERROR)
 
 
-def is_touch(distance):
-    threshold = 20  
+def is_touch_1(distance):
+    threshold = 40  
+
+    if distance is None:
+        return False
+    else:
+        return distance > threshold
+    
+def is_touch_2(distance):
+    threshold = 40  
 
     if distance is None:
         return False
@@ -43,13 +51,14 @@ if __name__ == '__main__':
                     velocity_x = 0.0
                     velocity_y = 0.0
 
-                    if is_touch(WHISKER.whisker1_2) or is_touch(WHISKER.whisker2_2):
+                    if is_touch_1(WHISKER.whisker1_1) or is_touch_2(WHISKER.whisker2_1):
                         velocity_x -= VELOCITY
 
                     motion_commander.start_linear_motion(
                         velocity_x, velocity_y, 0)
                     
-                    time.sleep(0.3)
+                    time.sleep(0.2)
+                    print(WHISKER.whisker1_1, WHISKER.whisker2_1)
 
 
             print('Demo terminated!')

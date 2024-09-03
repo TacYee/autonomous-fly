@@ -64,7 +64,7 @@ class Whisker:
         Calculate the filter coefficients for a lowpass filter.
         """
         high_freq = 1
-        low_freq = 0.05
+        low_freq = 0.1
         fs = 50
         b, a = signal.butter(1, [low_freq / (0.5 * fs), high_freq / (0.5 * fs)], 'bandpass')
         return b, a
@@ -115,6 +115,7 @@ class Whisker:
             self._slope_2_1, self._intercept_2_1 = self._linear_fit(self._first_100_data_2_1)
             self._slope_2_2, self._intercept_2_2 = self._linear_fit(self._first_100_data_2_2)
             self._slope_2_3, self._intercept_2_3 = self._linear_fit(self._first_100_data_2_3)
+            self._time_stamp += 1
 
     def _process_data_point(self, data_point_1_1, data_point_1_2, data_point_1_3, data_point_2_1, data_point_2_2, data_point_2_3):
         residuals_1_1 = data_point_1_1 - (self._slope_1_1 * self._time_stamp + self._intercept_1_1)
