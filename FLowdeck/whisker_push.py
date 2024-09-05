@@ -27,7 +27,7 @@ def is_touch_1(distance):
         return distance > threshold
     
 def is_touch_2(distance):
-    threshold = 40  
+    threshold = 30  
 
     if distance is None:
         return False

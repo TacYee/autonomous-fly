@@ -64,7 +64,7 @@ class Whisker:
         Calculate the filter coefficients for a lowpass filter.
         """
         high_freq = 1
-        low_freq = 0.1
+        low_freq = 0.05
         fs = 50
         b, a = signal.butter(1, [low_freq / (0.5 * fs), high_freq / (0.5 * fs)], 'bandpass')
         return b, a

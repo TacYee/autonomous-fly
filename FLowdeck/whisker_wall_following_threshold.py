@@ -14,7 +14,7 @@ import whisker
 from FileLogger import FileLogger
 from cflib.utils import uri_helper
 
-URI = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7EF')
+URI = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7E7')
 
 
 # Only output errors from the logging framework
@@ -150,11 +150,11 @@ def is_touch(distance):
 #         start_motion("linear")
 
 
-MIN_THRESHOLD1 = 40
-MAX_THRESHOLD1 = 150
+MIN_THRESHOLD1 = 30
+MAX_THRESHOLD1 = 100
 
 MIN_THRESHOLD2 = 20
-MAX_THRESHOLD2 = 100
+MAX_THRESHOLD2 = 80
 whisker1_1_data = []
 whisker2_1_data = []
 timestamps = []
@@ -171,6 +171,7 @@ if __name__ == '__main__':
 
     cf = Crazyflie(rw_cache='./cache')
     with SyncCrazyflie(URI, cf=cf) as scf:
+        cf.platform.send_arming_request(True)
         with MotionCommander(scf) as motion_commander:
             time.sleep(3)
             with whisker.Whisker(scf) as WHISKER:
@@ -198,7 +199,7 @@ if __name__ == '__main__':
                             motion_commander.start_turn_left(25)
                             time.sleep(0.02)
                         elif is_touch(WHISKER.whisker1_1) > MAX_THRESHOLD1 and is_touch(WHISKER.whisker2_1) > MAX_THRESHOLD2 :
-                            motion_commander.start_linear_motion(-0.2, 0, 0)
+                            motion_commander.start_linear_motion(-0.1, 0, 0)
                             time.sleep(0.02)
                         else :
                             motion_commander.start_linear_motion(0.2, 0, 0)
