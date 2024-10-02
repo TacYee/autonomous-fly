@@ -153,8 +153,8 @@ def is_touch(distance):
 MIN_THRESHOLD1 = 30
 MAX_THRESHOLD1 = 100
 
-MIN_THRESHOLD2 = 20
-MAX_THRESHOLD2 = 80
+MIN_THRESHOLD2 = 30
+MAX_THRESHOLD2 = 100
 whisker1_1_data = []
 whisker2_1_data = []
 timestamps = []
