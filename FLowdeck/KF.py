@@ -258,14 +258,14 @@ class KalmanFilterFLAT2:
         :param z: 当前测量值
         """
         # 卡尔曼增益：K_k = P_k^- * (P_k^- + R_k)^-1
-        self.K = self.P_minus /(self.P_minus + self.R)
+        self.K = self.P_minus @ np.linalg.inv(self.P_minus + self.R)
         
         # 更新状态估计：x_hat_k = x_hat_k^- + K_k * (z_k - x_hat_k^-)
-        self.x_pre = self.x_pre_minus + self.K * (z - self.x_pre_minus)
+        self.x_pre = self.x_pre_minus + self.K @ (z - self.x_pre_minus)
         
         # 更新协方差矩阵：P_k = (I - K_k) * P_k^-
-
-        self.P = (1 - self.K) * self.P_minus
+        I = np.eye(self.P.shape[0])  # 单位矩阵
+        self.P = (I - self.K) @ self.P_minus
 
     def get_current_estimate(self):
         """
