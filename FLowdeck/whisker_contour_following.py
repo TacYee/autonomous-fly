@@ -33,6 +33,7 @@ if __name__ == '__main__':
 
     cf = Crazyflie(rw_cache='./cache')
     with SyncCrazyflie(URI, cf=cf) as scf:
+        cf.param.set_value('motion.disable', '1')
         with MotionCommander(scf) as motion_commander:
             print(1)
             with whisker.Whisker(scf) as WHISKER:
