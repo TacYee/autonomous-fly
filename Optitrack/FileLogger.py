@@ -85,7 +85,7 @@ class FileLogger:
         """
         self._cfg_defs[config["name"]] = config
         self._enabled_configs.append(config["name"])
-        self._external_configs.append(name)
+        # self._external_configs.append(name)
 
     def registerData(self, config, data_dict):
         """Register data for an external logconfig. Data dict must contain the fields that
